@@ -24,7 +24,6 @@ _EOF
 }
 
 usage() {
-
 	exeName=${0##*/}
     cat << _EOF
 [NAME]
@@ -68,11 +67,11 @@ _EOF
     cd $dirName
     echo cd into  "$(pwd)"/ ...
     echo Begin to compile universal ctags ...
-    sleep 2
+    sleep 1
     ./autogen.sh
     ./configure --prefix=$ctagsInstDir
     make -j
-    sleep 2
+    sleep 1
     make install
     
     cat << _EOF
@@ -231,8 +230,11 @@ _EOF
 #	sudo update-alternatives --config java
 #
 
+	echo ------------------------------------------------------
+    echo START TO MAKE TOMCAT CONF FILE ...
+	echo ------------------------------------------------------
     writeTomcatConf
-    sudo cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
+    sudoecho  cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
 
 	echo ------------------------------------------------------
 	echo change default listen port 8080 to 8081 ...
@@ -253,6 +255,29 @@ _EOF
 STEP 3: INSTALLING TOMCAT 8 DONE ...
 ------------------------------------------------------
 _EOF
+}
+
+makeTecEnv() {
+    envName=dynamic.env
+    cd $startDir
+
+    # parse value of $var
+    cat > $envName << _EOF
+#!/bin/bash
+export JAVA_HOME=${javaInstDir}
+export JRE_HOME=${JAVA_HOME}/jre
+export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
+export CATALINA_HOME=/opt/tomcat
+export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
+_EOF
+
+    # do not parse value of $var
+    cat >> $envName << "_EOF"
+export PATH=${JAVA_HOME}/bin:$PATH
+_EOF
+
+    chmod +x $envName
+    cd -
 }
 
 # deploy OpenGrok
@@ -283,6 +308,14 @@ _EOF
     tar -zxv -f $tarName 
     cd $tarName
 
+    
+
+
+    echo ------------------------------------------------------
+    echo BEGIN TO MAKE ENV FILE FOR SOURCE ...
+    echo ------------------------------------------------------
+    makeTecEnv
+
     cat << "_EOF"
     
 ------------------------------------------------------
@@ -303,7 +336,7 @@ summaryInstall() {
 universal ctags under: `which ctags`
 
 ******************************************************
-*                  JAVA --------- 8                  *
+*                  JAVA JAVA JAVA 8                  *
 ******************************************************
 export JAVA_HOME=${javaInstDir}
 export JRE_HOME=${JAVA_HOME}/jre
@@ -311,7 +344,7 @@ export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
 export PATH=${JAVA_HOME}/bin:$PATH
 
 ******************************************************
-*                  TOMCAT ------ 8                   *
+*                  TOMCAT TOMCAT 8                   *
 ******************************************************
 export JAVA_HOME=${JAVA_HOME}
 export CATALINA_HOME=${TOM_HOME}
@@ -346,6 +379,7 @@ case $1 in
     ;;
 
     *)
+        set +x
         usage
     ;;
 esac

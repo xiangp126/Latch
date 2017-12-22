@@ -1,6 +1,7 @@
 *.swp
 *.swo
 *.bak
+tomcat.conf
 apache-*
 jre*
 ctags/
