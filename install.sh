@@ -8,7 +8,7 @@ mainWd=$startDir
 
 # common install directory
 commInstdir=~/.usr
-ctagsInstDir=$comminstdir
+ctagsInstDir=$commInstdir
 javaInstDir=/usr/lib/jvm/java-8-self
 tomcatInstDir=/opt/tomcat8-self
 
@@ -52,18 +52,23 @@ _EOF
     
     dirName=ctags
     if [[ -d "$dirName" ]]; then
-        echo Removing existing "$dirName"/ ...
-        rm -rf $dirName
+        echo [Warning]: $dirName/ already exists, Omitting this ...
+        # echo Removing existing "$dirName"/ ...
+        # rm -rf $dirName
+    else
+        echo git clone https://github.com/universal-ctags/ctags
+        cd $startDir
+        git clone https://github.com/universal-ctags/ctags
     fi
-    echo git clone https://github.com/universal-ctags/ctags
-    git clone https://github.com/universal-ctags/ctags
     
     cd ctags
     echo cd into  "$(pwd)"/ ...
     echo Begin to compile universal ctags ...
+    sleep 2
     ./autogen.sh
     ./configure --prefix=$ctagsInstDir
     make -j
+    sleep 2
     make install
     
     cat << _EOF
@@ -97,7 +102,19 @@ _EOF
     sudo mkdir -p $javaInstDir
 
     # rename download package
-    # wget $wgetLink -O $tarName
+    cd $startDir
+    # check if already has this tar ball.
+    if [[ -f $tarName ]]; then
+        echo [Warning]: Tar Ball $tarName already exists, Omitting wget ...
+    else
+        wget $wgetLink -O $tarName
+        # check if wget returns successfully
+        if [[ $? != 0 ]]; then
+            echo [Error]: wget returns error, quiting now ...
+            exit
+        fi
+    fi
+
     sudo tar -zxv -f "$tarName" --strip-components=1 -C $javaInstDir
     ln -sf ${javaInstDir}/bin/java ${commInstdir}/bin/java 
 
@@ -105,9 +122,10 @@ _EOF
     
 ------------------------------------------------------
 STEP 2: INSTALLING JAVA 8 DONE ...
-java: `java -version`
-------------------------------------------------------
 _EOF
+    echo java -version
+    java -version
+    echo ------------------------------------------------------
 }
 
 writeTomcatConf() {
@@ -176,9 +194,21 @@ _EOF
 		sudo useradd -s /bin/false -g $newGrp -d $tomHome $newUser
 	fi
 	
-	wgetLink="http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.0.48/bin"
-	tomV="apache-tomcat-8.0.48.tar.gz"
-	# wget $wgetLink/$tomV
+	wgetLink="http://mirror.jax.hugeserver.com/apache/tomcat/tomcat-8/v8.5.24/bin"
+	tarName="apache-tomcat-8.5.24.tar.gz"
+
+    cd $startDir
+    # check if already has this tar ball.
+    if [[ -f $tarName ]]; then
+        echo [Warning]: Tar Ball $tarName already exists, Omitting wget ...
+    else
+        wget $wgetLink -O $tarName
+        # check if wget returns successfully
+        if [[ $? != 0 ]]; then
+            echo [Error]: wget returns error, quiting now ...
+            exit
+        fi
+    fi
 
 	sudo rm -rf $tomHome
 	echo mkdir -p $tomHome
@@ -223,7 +253,8 @@ STEP 3: INSTALLING TOMCAT 8 DONE ...
 _EOF
 }
 
-installOpengrok() {
+# deploy OpenGrok
+installOpenGrok() {
     cat << "_EOF"
     
 ------------------------------------------------------
@@ -231,6 +262,24 @@ STEP 4: INSTALLING OPENGROK ...
 ------------------------------------------------------
 _EOF
 
+    wgetLink="https://github.com/oracle/opengrok/releases/download/1.1-rc18"
+    tarName="opengrok-1.1-rc18.tar.gz"
+
+    cd $startDir
+    # check if already has this tar ball.
+    if [[ -f $tarName ]]; then
+        echo [Warning]: Tar Ball $tarName already exists, Omitting wget ...
+    else
+        wget $wgetLink -O $tarName
+        # check if wget returns successfully
+        if [[ $? != 0 ]]; then
+            echo [Error]: wget returns error, quiting now ...
+            exit
+        fi
+    fi
+
+    tar -zxv -f $tarName 
+    cd $tarName
 
     cat << "_EOF"
     
@@ -239,7 +288,6 @@ STEP 4: INSTALLING OPENGROK DONE ...
 ------------------------------------------------------
 _EOF
 }
-
 
 summaryInstall() {
     set +x
@@ -268,10 +316,16 @@ _EOF
 }
 
 install() {
-	# installCtags
+	installCtags
+    sleep 2
 	installJava8
+    sleep 2
 	installTomcat8
+    sleep 2
+    installOpenGrok
 
+    # show install summary
+    sleep 2
     summaryInstall
 }
 
@@ -284,4 +338,3 @@ case $1 in
         usage
     ;;
 esac
-
