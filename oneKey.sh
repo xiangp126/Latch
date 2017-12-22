@@ -309,6 +309,7 @@ makeTecEnv() {
     # parse value of $var
     cat > $envName << _EOF
 #!/bin/bash
+export COMMON_INSTALL_DIR=$commInstdir
 export JAVA_HOME=${javaInstDir}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
@@ -323,7 +324,7 @@ _EOF
 
     # do not parse value of $var
     cat >> $envName << "_EOF"
-export PATH=${commInstdir}/bin:${JAVA_HOME}/bin:$PATH
+export PATH=${COMMON_INSTALL_DIR}/bin:${JAVA_HOME}/bin:$PATH
 _EOF
 
     chmod +x $envName
@@ -426,7 +427,7 @@ _EOF
 }
 
 install() {
-#    installCtags
+    installCtags
     sleep 1
 	installJava8
     sleep 1
