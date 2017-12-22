@@ -323,7 +323,7 @@ _EOF
 
     # do not parse value of $var
     cat >> $envName << "_EOF"
-export PATH=${JAVA_HOME}/bin:$PATH
+export PATH=${commInstdir}/bin:${JAVA_HOME}/bin:$PATH
 _EOF
 
     chmod +x $envName
