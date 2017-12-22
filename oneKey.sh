@@ -119,7 +119,8 @@ _EOF
     fi
 
     sudo tar -zxv -f "$tarName" --strip-components=1 -C $javaInstDir
-    ln -sf ${javaInstDir}/bin/java ${commInstdir}/bin/java 
+    # no more need make soft link for java, will added in PATH
+    # ln -sf ${javaInstDir}/bin/java ${commInstdir}/bin/java 
 
     cat << _EOF
     
@@ -163,7 +164,7 @@ description "Tomcat Server"
     rm -rf $CATALINA_HOME/temp/*
   end script
 _EOF
-    cd -
+    cd - &> /dev/null
 }
 
 installTomcat8() {
@@ -277,7 +278,9 @@ export PATH=${JAVA_HOME}/bin:$PATH
 _EOF
 
     chmod +x $envName
-    cd -
+    cd - &> /dev/null
+    # as return value of this func
+    echo $envName
 }
 
 # deploy OpenGrok
@@ -291,6 +294,7 @@ _EOF
 
     wgetLink="https://github.com/oracle/opengrok/releases/download/1.1-rc18"
     tarName="opengrok-1.1-rc18.tar.gz"
+    untarName="opengrok-1.1-rc18"
 
     cd $startDir
     # check if already has this tar ball.
@@ -304,17 +308,25 @@ _EOF
             exit
         fi
     fi
-
     tar -zxv -f $tarName 
-    cd $tarName
-
-    
-
 
     echo ------------------------------------------------------
     echo BEGIN TO MAKE ENV FILE FOR SOURCE ...
     echo ------------------------------------------------------
-    makeTecEnv
+    # env name is the return value of func makeTecEnv
+    envName=`makeTecEnv`
+
+    # source ./$envName
+    # enter into opengrok dir
+    cd $untarName/bin
+    chmod +w OpenGrok
+
+    # add source command at top of script OpenGrok
+    sed -i "2a source ../../${envName}" OpenGrok
+    # and then can run deploy well
+    sudo ./OpenGrok deploy
+
+    cd - &> /dev/null
 
     cat << "_EOF"
     
@@ -341,7 +353,6 @@ universal ctags under: `which ctags`
 export JAVA_HOME=${javaInstDir}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
-export PATH=${JAVA_HOME}/bin:$PATH
 
 ******************************************************
 *                  TOMCAT TOMCAT 8                   *
@@ -361,15 +372,15 @@ _EOF
 
 install() {
 #	installCtags
-    sleep 2
+    sleep 1
 	installJava8
-    sleep 2
+    sleep 1
 	installTomcat8
-    sleep 2
+    sleep 1
     installOpenGrok
 
     # show install summary
-    sleep 2
+    sleep 1
     summaryInstall
 }
 
