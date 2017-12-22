@@ -103,10 +103,10 @@ STEP 2: INSTALLING JAVA 8 ...
 ------------------------------------------------------
 _EOF
     # instruction to install java8
+    # wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz
     JAVA_HOME=$javaInstDir
-    local wgetLink="http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz?AuthParam=1513943401_63031e8bb15dab81901fc2eb8ea69671"
+    local wgetLink="http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf"
     tarName="jdk-8u151-linux-x64.tar.gz"
-
     # make new directory if not exist
     sudo mkdir -p $javaInstDir
 
@@ -116,7 +116,12 @@ _EOF
     if [[ -f $tarName ]]; then
         echo [Warning]: Tar Ball $tarName already exists, Omitting wget ...
     else
-        wget $wgetLink -O $tarName
+        wget --no-cookies \
+        --no-check-certificate \
+        --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+        "${wgetLink}/${tarName}" \
+        -O $tarName
+
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
             echo [Error]: wget returns error, quiting now ...
@@ -210,7 +215,12 @@ _EOF
     if [[ -f $tarName ]]; then
         echo [Warning]: Tar Ball $tarName already exists, Omitting wget ...
     else
-        wget $wgetLink -O $tarName
+        wget --no-cookies \
+        --no-check-certificate \
+        --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+        "${wgetLink}/${tarName}" \
+        -O $tarName
+
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
             echo [Error]: wget returns error, quiting now ...
@@ -266,11 +276,14 @@ _EOF
     tarName=commons-daemon-native.tar.gz
     untarName=commons-daemon-1.1.0-native-src
     sudo tar -zxv -f $tarName
+    sudo chmod -R 777 $untarName
     cd $untarName/unix
     sh support/buildconf.sh
     ./configure --with-java=${javaInstDir}
     make -j
     sudo cp jsvc ${tomcatInstDir}/bin
+    cd $tomHome/bin
+    rm -rf $untarName
 
     cd $startDir
     echo Stop Tomcat Daemon ...
@@ -413,7 +426,7 @@ _EOF
 }
 
 install() {
-    installCtags
+#    installCtags
     sleep 1
 	installJava8
     sleep 1
