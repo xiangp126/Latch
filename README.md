@@ -91,12 +91,9 @@ wget https://github.com/oracle/opengrok/releases/download/1.1-rc18/opengrok-1.1-
 tar -zxv -f opengrok-1.1-rc18.tar.gz
 cd opengrok-1.1-rc18.tar.gz
 
-
-
 export JAVA_HOME=/usr/lib/jvm/java-8-oracle
 export CATALINA_HOME=/opt/tomcat
 export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
-
 
 cd bin
 sudo sh -x OpenGrok deploy
