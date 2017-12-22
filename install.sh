@@ -1,11 +1,16 @@
 #!/bin/bash
+set -x
 
-# main work directory, usually ~/myGit
-mainWd=~/myGit
-# install directory
-insDir=~/.usr
 # this shell start dir, normally original path
 startDir=`pwd`
+# main work directory, usually ~/myGit
+mainWd=$startDir
+
+# common install directory
+commInstdir=~/.usr
+ctagsInstDir=$comminstdir
+javaInstDir=/usr/lib/jvm/java-8-self
+tomcatInstDir=/opt/tomcat8-self
 
 logo() {
     cat << "_EOF"
@@ -40,7 +45,8 @@ installCtags() {
 STEP 1: INSTALLING UNIVERSAL CTAGS ...
 ------------------------------------------------------
 _EOF
-    
+    CTAGS_HOME=$ctagsInstDir
+
     cd $mainWd
     echo cd into  $mainWd/ ...
     
@@ -56,7 +62,7 @@ _EOF
     echo cd into  "$(pwd)"/ ...
     echo Begin to compile universal ctags ...
     ./autogen.sh
-    ./configure --prefix=$insDir
+    ./configure --prefix=$ctagsInstDir
     make -j
     make install
     
@@ -70,18 +76,84 @@ ctags --version
 $(ctags --version)
 
 ------------------------------------------------------
-INSTALLING UNIVERSAL CTAGS Done ...
+INSTALLING UNIVERSAL CTAGS DONE ...
 ------------------------------------------------------
 _EOF
 }
 
 installJava8() {
-	echo
+    cat << "_EOF"
+    
+------------------------------------------------------
+STEP 2: INSTALLING JAVA 8 ...
+------------------------------------------------------
+_EOF
+    # instruction to install java8
+    JAVA_HOME=$javaInstDir
+    local wgetLink=http://javadl.oracle.com/webapps/download/AutoDL?BundleId=227542_e758a0de34e24606bca991d704f6dcbf
+    tarName=jre-8u151-linux-x64.tar.gz
+
+    # make new directory if not exist
+    sudo mkdir -p $javaInstDir
+
+    # rename download package
+    # wget $wgetLink -O $tarName
+    sudo tar -zxv -f "$tarName" --strip-components=1 -C $javaInstDir
+    ln -sf ${javaInstDir}/bin/java ${commInstdir}/bin/java 
+
+    cat << _EOF
+    
+------------------------------------------------------
+STEP 2: INSTALLING JAVA 8 DONE ...
+java: `java -version`
+------------------------------------------------------
+_EOF
+}
+
+writeTomcatConf() {
+    # tomcat start/stop conf name
+    confFile=tomcat.conf
+    TOM_HOME=$tomcatInstDir
+    CATALINA_HOME=$tomcatInstDir
+
+    cd $mainWd
+    cat > "$confFile" << _EOF
+description "Tomcat Server"
+
+  start on runlevel [2345]
+  stop on runlevel [!2345]
+  respawn
+  respawn limit 10 5
+
+  setuid tomcat
+  setgid tomcat
+
+  env JAVA_HOME=$JAVA_HOME
+  env CATALINA_HOME=$TOM_HOME
+
+  # Modify these options as needed
+  env JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+  env CATALINA_OPTS="-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+
+  exec $CATALINA_HOME/bin/catalina.sh run
+
+  # cleanup temp directory after stop
+  post-stop script
+    rm -rf $CATALINA_HOME/temp/*
+  end script
+_EOF
+    cd -
 }
 
 installTomcat8() {
+    cat << "_EOF"
+    
+------------------------------------------------------
+STEP 3: INSTALLING TOMCAT 8 ...
+------------------------------------------------------
+_EOF
 	# run tomcat using newly made user: tomcat
-	tomHome=/opt/tomcat
+    tomHome=$tomcatInstDir
 	newUser=tomcat
 	newGrp=tomcat
 
@@ -106,8 +178,7 @@ installTomcat8() {
 	
 	wgetLink="http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.0.48/bin"
 	tomV="apache-tomcat-8.0.48.tar.gz"
-	echo wget $wgetLink/$tomV
-	wget $wgetLink/$tomV
+	# wget $wgetLink/$tomV
 
 	sudo rm -rf $tomHome
 	echo mkdir -p $tomHome
@@ -120,36 +191,88 @@ installTomcat8() {
 	echo ------------------------------------------------------
     echo cd into  "$(pwd)"/ ...
 
-	echo chgrp -R tomcat conf
 	sudo chgrp -R tomcat conf
-	echo chmod g+rwx conf
 	sudo chmod g+rwx conf
-	echo chmod g+r conf/*
 	sudo chmod g+r conf/*
-	
-	echo chown -R tomcat work/ temp/ logs/
 	sudo chown -R tomcat work/ temp/ logs/
 
-	#sudo update-alternatives --config java
+#	sudo update-alternatives --config java
+#
 
-	echo cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
-	sudo cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
-
-	# change default listen port 8080 to 8081
-	echo cp ${startDir}/server.xml /opt/tomcat/conf/server.xml
-	sudo cp ${startDir}/server.xml /opt/tomcat/conf/server.xml
+    writeTomcatConf
+    sudo cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
 
 	echo ------------------------------------------------------
-	echo initctl reload-configuration
-	initctl reload-configuration
-	# initctl start tomcat
+	echo change default listen port 8080 to 8081 ...
+    serverXmlPath=${tomHome}/conf/server.xml
+    sudo cp $serverXmlPath ${serverXmlPath}.bak
+    sudo sed -i --regexp-extended 's/(<Connector port=)"8080"/\1"8081"/' \
+        ${serverXmlPath}
 	echo ------------------------------------------------------
+
+#	echo initctl reload-configuration
+#	sudo initctl reload-configuration
+#	initctl start tomcat
+#	echo ------------------------------------------------------
+
+    cat << "_EOF"
+    
+------------------------------------------------------
+STEP 3: INSTALLING TOMCAT 8 DONE ...
+------------------------------------------------------
+_EOF
+}
+
+installOpengrok() {
+    cat << "_EOF"
+    
+------------------------------------------------------
+STEP 4: INSTALLING OPENGROK ...
+------------------------------------------------------
+_EOF
+
+
+    cat << "_EOF"
+    
+------------------------------------------------------
+STEP 4: INSTALLING OPENGROK DONE ...
+------------------------------------------------------
+_EOF
+}
+
+
+summaryInstall() {
+    set +x
+    logo
+
+    cat << _EOF
+
+------------------------------------------------------
+universal ctags under: `which ctags`
+------------------------------------------------------
+
+------------------------------------------------------
+# java8 under: `which java`
+export JAVA_HOME=${javaInstDir}
+export JRE_HOME=${JAVA_HOME}/jre
+export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
+export PATH=${JAVA_HOME}/bin:$PATH
+------------------------------------------------------
+
+------------------------------------------------------
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+export CATALINA_HOME=/opt/tomcat
+export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
+------------------------------------------------------
+_EOF
 }
 
 install() {
 	# installCtags
-	# installJava8
+	installJava8
 	installTomcat8
+
+    summaryInstall
 }
 
 case $1 in
