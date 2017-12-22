@@ -16,6 +16,7 @@ tomcatUser=tomcat8
 tomcatGrp=tomcat8
 # dynamic env global name
 dynamicEnvName=dynamic.env
+opengrokInstanceBase=/var/opengrok
 
 logo() {
     cat << "_EOF"
@@ -82,11 +83,11 @@ _EOF
     cat << _EOF
     
 ------------------------------------------------------
-ctags path = `which ctags`
+ctags path = $ctagsInstDir/bin/
 ------------------------------------------------------
 ctags --version
 
-$(ctags --version)
+$($ctagsInstDir/bin/ctags --version)
 
 ------------------------------------------------------
 INSTALLING UNIVERSAL CTAGS DONE ...
@@ -133,7 +134,7 @@ _EOF
 STEP 2: INSTALLING JAVA 8 DONE ...
 _EOF
     echo java -version
-    java -version
+    ${javaInstDir}/bin/java -version
     echo ------------------------------------------------------
 }
 
@@ -246,10 +247,6 @@ _EOF
         ${serverXmlPath}
 	echo ------------------------------------------------------
 
-#	sudo initctl reload-configuration
-#	initctl start tomcat
-#	echo ------------------------------------------------------
-
     # make daemon script to start/shutdown Tomcat
     cd $startDir
     envName=$dynamicEnvName
@@ -258,7 +255,7 @@ _EOF
     daeName=daemon.sh
     cp $smpScripName $daeName
     # add source command at top of script daemon.sh
-    sed -i "2a source ./${envName}" $daeName
+    sed -i "2a source ${startDir}/${envName}" $daeName
     cd - &> /dev/null
 
     echo ------------------------------------------------------
@@ -276,7 +273,8 @@ _EOF
     sudo cp jsvc ${tomcatInstDir}/bin
 
     cd $startDir
-
+    echo Start Tomcat Daemon ...
+    sudo sh daemon.sh run &> /dev/null &
 
     cat << "_EOF"
     
@@ -299,12 +297,13 @@ makeTecEnv() {
 export JAVA_HOME=${javaInstDir}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
+export TOMCAT_USER=${tomcatUser}
 export TOMCAT_HOME=${TOMCAT_HOME}
 export CATALINA_HOME=${TOMCAT_HOME}
 export CATALINA_BASE=${TOMCAT_HOME}
 export CATALINA_TMPDIR=${TOMCAT_HOME}/temp
+export OPENGROK_INSTANCE_BASE=${opengrokInstanceBase}
 export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
-export TOMCAT_USER=${tomcatUser}
 _EOF
 
     # do not parse value of $var
@@ -358,7 +357,8 @@ _EOF
     chmod +w OpenGrok
 
     # add source command at top of script OpenGrok
-    sed -i "2a source ../../${envName}" OpenGrok
+    sed -i "2a source ${startDir}/${envName}" OpenGrok
+    ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok 
     # and then can run deploy well
     sudo ./OpenGrok deploy
 
@@ -381,33 +381,37 @@ summaryInstall() {
 ******************************************************
 *                  UNIVERSAL CTAGS                   *
 ******************************************************
-universal ctags under: `which ctags`
 
+_EOF
+echo export PATH=${commInstdir}:'$PATH'
+
+    cat << _EOF
 ******************************************************
 *                  JAVA JAVA JAVA 8                  *
 ******************************************************
-export JAVA_HOME=${javaInstDir}
-export JRE_HOME=${JAVA_HOME}/jre
-export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
 
 ******************************************************
 *                  TOMCAT TOMCAT 8                   *
 ******************************************************
-export JAVA_HOME=${JAVA_HOME}
-export CATALINA_HOME=${TOM_HOME}
-export OPENGROK_TOMCAT_BASE=${CATALINA_HOME}
+# start tomcat
+sudo sh ./daemon.sh run &> /dev/null &
+# stop tomcat
+sudo sh ./daemon.sh stop
 
 ******************************************************
 *                  OPENGROK 1.1-RC18                 *
 ******************************************************
-java = $(which java)
-tomcat under : ${TOM_HOME}
+# deploy OpenGrok
+sudo sh ./OpenGrok deploy
+# make index of source
+sudo sh ./OpenGrok index /usr/local/src/coreutils-8.21
+------------------------------------------------------
 
 _EOF
 }
 
 install() {
-#	installCtags
+    installCtags
     sleep 1
 	installJava8
     sleep 1

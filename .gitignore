@@ -3,6 +3,7 @@
 *.bak
 server.xml
 tomcat.conf
+dynamic.env
 apache-*
 daemon.sh
 jdk-*
