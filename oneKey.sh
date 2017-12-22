@@ -11,6 +11,9 @@ commInstdir=~/.usr
 ctagsInstDir=$commInstdir
 javaInstDir=/usr/lib/jvm/java-8-self
 tomcatInstDir=/opt/tomcat8-self
+# id to run tomcat
+tomcatUser=tomcat8
+tomcatGrp=tomcat8
 
 logo() {
     cat << "_EOF"
@@ -98,8 +101,8 @@ STEP 2: INSTALLING JAVA 8 ...
 _EOF
     # instruction to install java8
     JAVA_HOME=$javaInstDir
-    local wgetLink=http://javadl.oracle.com/webapps/download/AutoDL?BundleId=227542_e758a0de34e24606bca991d704f6dcbf
-    tarName=jre-8u151-linux-x64.tar.gz
+    local wgetLink="http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz?AuthParam=1513943401_63031e8bb15dab81901fc2eb8ea69671"
+    tarName="jdk-8u151-linux-x64.tar.gz"
 
     # make new directory if not exist
     sudo mkdir -p $javaInstDir
@@ -176,8 +179,8 @@ STEP 3: INSTALLING TOMCAT 8 ...
 _EOF
 	# run tomcat using newly made user: tomcat
     tomHome=$tomcatInstDir
-	newUser=tomcat
-	newGrp=tomcat
+	newUser=$tomcatUser
+	newGrp=$tomcatGrp
 
 	# tomcat:tomcat
 	# create group if not exists  
@@ -213,7 +216,6 @@ _EOF
     fi
 
 	sudo rm -rf $tomHome
-	echo mkdir -p $tomHome
 	sudo mkdir -p $tomHome
 
 	# untar into /opt/tomcat and strip one level directory
@@ -223,19 +225,16 @@ _EOF
 	echo ------------------------------------------------------
     echo cd into  "$(pwd)"/ ...
 
-	sudo chgrp -R tomcat conf
+	sudo chgrp -R $newGrp conf
 	sudo chmod g+rwx conf
 	sudo chmod g+r conf/*
-	sudo chown -R tomcat work/ temp/ logs/
+	sudo chown -R $newUser work/ temp/ logs/
 
-#	sudo update-alternatives --config java
-#
-
-	echo ------------------------------------------------------
-    echo START TO MAKE TOMCAT CONF FILE ...
-	echo ------------------------------------------------------
-    writeTomcatConf
-    sudoecho  cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
+	# echo ------------------------------------------------------
+    # echo START TO MAKE TOMCAT CONF FILE ...
+	# echo ------------------------------------------------------
+    # writeTomcatConf
+    # sudoecho  cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
 
 	echo ------------------------------------------------------
 	echo change default listen port 8080 to 8081 ...
@@ -245,10 +244,19 @@ _EOF
         ${serverXmlPath}
 	echo ------------------------------------------------------
 
-#	echo initctl reload-configuration
 #	sudo initctl reload-configuration
 #	initctl start tomcat
 #	echo ------------------------------------------------------
+
+    # make daemon script to start/shutdown Tomcat
+    cd $startDir
+    smpScripName=daemon.sh.sample
+    # copied to name
+    daeName=daemon.sh
+    cp $smpScripName $daeName
+    # add source command at top of script daemon.sh
+    sed -i "2a source ../../${envName}" $daeName
+    cd - &> /dev/null
 
     cat << "_EOF"
     
@@ -268,8 +276,9 @@ makeTecEnv() {
 export JAVA_HOME=${javaInstDir}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
-export CATALINA_HOME=/opt/tomcat
+export CATALINA_HOME=${TOM_HOME}
 export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
+export TOMCAT_USER=${tomcatUser}
 _EOF
 
     # do not parse value of $var

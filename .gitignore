@@ -1,8 +1,11 @@
 *.swp
 *.swo
 *.bak
+server.xml
 tomcat.conf
 apache-*
+daemon.sh
+jdk-*
 jre*
 ctags/
 opengrok-*
