@@ -14,6 +14,8 @@ tomcatInstDir=/opt/tomcat8-self
 # id to run tomcat
 tomcatUser=tomcat8
 tomcatGrp=tomcat8
+# dynamic env global name
+dynamicEnvName=dynamic.env
 
 logo() {
     cat << "_EOF"
@@ -226,7 +228,7 @@ _EOF
     echo cd into  "$(pwd)"/ ...
 
 	sudo chgrp -R $newGrp conf
-	sudo chmod g+rwx conf
+	sudo chmod 775 conf
 	sudo chmod g+r conf/*
 	sudo chown -R $newUser work/ temp/ logs/
 
@@ -250,13 +252,31 @@ _EOF
 
     # make daemon script to start/shutdown Tomcat
     cd $startDir
+    envName=$dynamicEnvName
     smpScripName=daemon.sh.sample
     # copied to name
     daeName=daemon.sh
     cp $smpScripName $daeName
     # add source command at top of script daemon.sh
-    sed -i "2a source ../../${envName}" $daeName
+    sed -i "2a source ./${envName}" $daeName
     cd - &> /dev/null
+
+    echo ------------------------------------------------------
+    echo BEGIN TO COMPILE JSVC ...
+    echo ------------------------------------------------------
+    sudo chmod 755 $tomHome/bin
+    cd $tomHome/bin
+    tarName=commons-daemon-native.tar.gz
+    untarName=commons-daemon-1.1.0-native-src
+    sudo tar -zxv -f $tarName
+    cd $untarName/unix
+    sh support/buildconf.sh
+    ./configure --with-java=${javaInstDir}
+    make -j
+    sudo cp jsvc ${tomcatInstDir}/bin
+
+    cd $startDir
+
 
     cat << "_EOF"
     
@@ -267,8 +287,11 @@ _EOF
 }
 
 makeTecEnv() {
-    envName=dynamic.env
+    # enter into dir first
     cd $startDir
+    envName=dynamic.env
+    TOMCAT_HOME=${tomcatInstDir}
+    CATALINA_HOME=$TOMCAT_HOME
 
     # parse value of $var
     cat > $envName << _EOF
@@ -276,7 +299,10 @@ makeTecEnv() {
 export JAVA_HOME=${javaInstDir}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
-export CATALINA_HOME=${TOM_HOME}
+export TOMCAT_HOME=${TOMCAT_HOME}
+export CATALINA_HOME=${TOMCAT_HOME}
+export CATALINA_BASE=${TOMCAT_HOME}
+export CATALINA_TMPDIR=${TOMCAT_HOME}/temp
 export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
 export TOMCAT_USER=${tomcatUser}
 _EOF
@@ -323,7 +349,8 @@ _EOF
     echo BEGIN TO MAKE ENV FILE FOR SOURCE ...
     echo ------------------------------------------------------
     # env name is the return value of func makeTecEnv
-    envName=`makeTecEnv`
+    makeTecEnv
+    envName=$dynamicEnvName
 
     # source ./$envName
     # enter into opengrok dir
