@@ -289,7 +289,7 @@ _EOF
     echo Stop Tomcat Daemon ...
     sudo sh ./daemon.sh stop &> /dev/null
     echo Start Tomcat Daemon ...
-    sudo sh daemon.sh run &> /dev/null &
+    sudo sh ./daemon.sh run &> /dev/null &
 
     cat << "_EOF"
     
