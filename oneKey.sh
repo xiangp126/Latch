@@ -283,7 +283,7 @@ _EOF
     make -j
     sudo cp jsvc ${tomcatInstDir}/bin
     cd $tomHome/bin
-    rm -rf $untarName
+    sudo rm -rf $untarName
 
     cd $startDir
     # echo Stop Tomcat Daemon ...
@@ -445,7 +445,7 @@ install() {
     sudo sh ./daemon.sh stop &> /dev/null
     echo ------------- START TOMCAT DAEMON --------------------
     sudo sh ./daemon.sh run &> /dev/null &
-    VISIT http://server-ip:8081/source
+    echo VISIT http://server-ip:8081/source
     echo ------------------------------------------------------
 }
 
