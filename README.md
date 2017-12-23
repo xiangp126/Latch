@@ -1,7 +1,4 @@
-# cc-opengrok
-demo to deploy opengrok through onekey
-
-# installation guide
+# Installation Guide
 script oneKey.sh does not use apt-get or yum install
 
 verified on Ubuntu & CentOS & MAC OS
@@ -27,8 +24,8 @@ $ sh oneKey.sh
 $ sh oneKey.sh install
 
 ```
-# steps summary
-## install universal ctags
+# Steps Summary
+## Install universal ctags
 ```bash
 git clone https://github.com/universal-ctags/ctags
 cd ctags
@@ -50,30 +47,11 @@ Exuberant Ctags 5.8, Copyright (C) 1996-2009 Darren Hiebert
 
 ```
 
-## install java-8
-   
+## Install java-8
+see script for detail
+
+## Install tomcat-8
 ```bash
-# install tsock for apt-get to use socks5 proxy (if needed)
-# then use 'socks apt-get' instead of 'apt-get'
-sudo apt-get install tsocks
-cp tsocks.conf /etc/tsocks.conf
-
-cd /etc/apt/sources.list.d
-sudo cp /etc/apt/sources.list.d/java-8-debian.list .
-sudo tsocks apt-get update
-```
-
-```bash
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
-sudo apt-get udpate
-
-sudo apt-get install oracle-java8-installer
-
-```
-
-## install tomcat-8
-```bash
-sudo apt-get update
 sudo groupadd tomcat
 sudo useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat
 
@@ -102,7 +80,7 @@ initctl start tomcat
 
 ```
 
-## install opengrok
+## Install opengrok
 ```bash
 # Get released binary, not source tar ball.
 wget https://github.com/oracle/opengrok/releases/download/1.1-rc18/opengrok-1.1-rc18.tar.gz
@@ -119,6 +97,6 @@ sudo sh -x OpenGrok index
 
 ```
 
-# reference
+# Reference
 [ubuntu install tomcat-8 - digital ocean](https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-on-ubuntu-14-04)
 
