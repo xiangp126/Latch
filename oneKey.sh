@@ -286,10 +286,10 @@ _EOF
     rm -rf $untarName
 
     cd $startDir
-    echo Stop Tomcat Daemon ...
-    sudo sh ./daemon.sh stop &> /dev/null
-    echo Start Tomcat Daemon ...
-    sudo sh ./daemon.sh run &> /dev/null &
+    # echo Stop Tomcat Daemon ...
+    # sudo sh ./daemon.sh stop &> /dev/null
+    # echo Start Tomcat Daemon ...
+    # sudo sh ./daemon.sh run &> /dev/null &
 
     cat << "_EOF"
     
@@ -397,11 +397,11 @@ summaryInstall() {
 ******************************************************
 *                  UNIVERSAL CTAGS                   *
 ******************************************************
-
 _EOF
 echo export PATH=${commInstdir}:'$PATH'
 
     cat << _EOF
+
 ******************************************************
 *                  JAVA JAVA JAVA 8                  *
 ******************************************************
@@ -438,6 +438,15 @@ install() {
     # show install summary
     sleep 1
     summaryInstall
+
+    # restart tomcat daemon underground
+    cd $startDir
+    echo -------------- STOP TOMCAT DAEMON --------------------
+    sudo sh ./daemon.sh stop &> /dev/null
+    echo ------------- START TOMCAT DAEMON --------------------
+    sudo sh ./daemon.sh run &> /dev/null &
+    VISIT http://server-ip:8081/source
+    echo ------------------------------------------------------
 }
 
 case $1 in

@@ -2,14 +2,32 @@
 demo to deploy opengrok by hand
 
 # installation guide
-below versions may not be able to apt-get install, so manually 
+script oneKey.sh does not use apt-get or yum install
 
-install them from source or binary.
+verified on Ubuntu & CentOS & MAC OS
 
 * java   >= 1.8
 * tomcat >= 8
 * ctags
 
+```bash
+$ sh oneKey.sh 
+[NAME]
+        oneKey.sh -- setup opengrok through one script
+
+[USAGE]
+        oneKey.sh [install | help]
+
+  ___  _ __   ___ _ __   __ _ _ __ ___ | | __
+ / _ \| '_ \ / _ \ '_ \ / _` | '__/ _ \| |/ /
+| (_) | |_) |  __/ | | | (_| | | | (_) |   <
+ \___/| .__/ \___|_| |_|\__, |_|  \___/|_|\_\
+      |_|               |___/
+
+$ sh oneKey.sh install
+
+```
+# steps summary
 ## install universal ctags
 ```bash
 git clone https://github.com/universal-ctags/ctags
@@ -102,5 +120,5 @@ sudo sh -x OpenGrok index
 ```
 
 # reference
-[buntu install tomcat-8 - digital ocean](https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-on-ubuntu-14-04)
+[ubuntu install tomcat-8 - digital ocean](https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-on-ubuntu-14-04)
 
