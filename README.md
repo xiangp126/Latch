@@ -1,5 +1,5 @@
 # cc-opengrok
-demo to deploy opengrok by hand
+demo to deploy opengrok through onekey
 
 # installation guide
 script oneKey.sh does not use apt-get or yum install
