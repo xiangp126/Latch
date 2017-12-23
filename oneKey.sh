@@ -342,16 +342,21 @@ STEP 4: INSTALLING OPENGROK ...
 ------------------------------------------------------
 _EOF
 
-    wgetLink="https://github.com/oracle/opengrok/releases/download/1.1-rc18"
-    tarName="opengrok-1.1-rc18.tar.gz"
-    untarName="opengrok-1.1-rc18"
+    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc17
+    tarName=opengrok-1.1-rc17.tar.gz
+    untarName=opengrok-1.1-rc17
 
     cd $startDir
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
         echo [Warning]: Tar Ball $tarName already exists, Omitting wget ...
     else
-        wget $wgetLink/$tarName -O $tarName
+        wget --no-cookies \
+        --no-check-certificate \
+        --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+        "${wgetLink}/${tarName}" \
+        -O $tarName
+
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
             echo [Error]: wget returns error, quiting now ...
