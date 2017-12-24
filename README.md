@@ -5,7 +5,7 @@ verified on Ubuntu & CentOS & MAC OS
 
 * java   >= 1.8
 * tomcat >= 8
-* ctags
+* universal ctags
 
 ```bash
 $ sh oneKey.sh 

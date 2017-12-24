@@ -283,7 +283,7 @@ _EOF
     make -j
     sudo cp jsvc ${tomcatInstDir}/bin
     cd $tomHome/bin
-    sudo rm -rf $untarName
+    # sudo rm -rf $untarName
 
     cd $startDir
     # echo Stop Tomcat Daemon ...
