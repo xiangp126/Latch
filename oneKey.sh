@@ -17,6 +17,7 @@ tomcatGrp=tomcat8
 # dynamic env global name
 dynamicEnvName=dynamic.env
 opengrokInstanceBase=/var/opengrok
+OPENGROKPATH=""
 
 logo() {
     cat << "_EOF"
@@ -232,7 +233,7 @@ _EOF
 	sudo mkdir -p $tomHome
 
 	# untar into /opt/tomcat and strip one level directory
-	sudo tar -zxv -f apache-tomcat-8*tar.gz -C $tomHome --strip-components=1
+	sudo tar -zxv -f $tarName -C $tomHome --strip-components=1
 
 	cd $tomHome
 	echo ------------------------------------------------------
@@ -376,6 +377,7 @@ _EOF
     # enter into opengrok dir
     cd $untarName/bin
     chmod +w OpenGrok
+    OPENGROKPATH=`pwd`
 
     # add source command at top of script OpenGrok
     sed -i "2a source ${startDir}/${envName}" OpenGrok
@@ -423,6 +425,7 @@ sudo sh ./daemon.sh stop
 *                  OPENGROK 1.1-RC18                 *
 ******************************************************
 # deploy OpenGrok
+# under $OPENGROKPATH 
 sudo sh ./OpenGrok deploy
 # make index of source
 sudo sh ./OpenGrok index /usr/local/src/coreutils-8.21

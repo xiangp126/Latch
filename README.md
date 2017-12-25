@@ -1,11 +1,20 @@
-# Installation Guide
-script oneKey.sh does not use apt-get or yum install
+# Prerequisite
+verified on 
+* Ubuntu 14.04 LTS
+* CentOS with kernel 4.4
 
-verified on Ubuntu & CentOS & MAC OS
+CentOS 6.9 upgrade to kernel 4.4 first, follow this guide
+https://www.jianshu.com/p/25d8ecc75846
+kernel 2.6 of CentOS 6.9 throws java fatal error, which is a system bug.
+
+* MAC-OS not supported
 
 * java   >= 1.8
 * tomcat >= 8
 * universal ctags
+
+# Installation Guide
+script oneKey.sh does not use apt-get or yum install
 
 ```bash
 $ sh oneKey.sh 
