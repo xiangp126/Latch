@@ -4,17 +4,20 @@ verified on
 * CentOS with kernel 4.4
 
 CentOS 6.9 upgrade to kernel 4.4 first, follow this guide
+
 https://www.jianshu.com/p/25d8ecc75846
+
 kernel 2.6 of CentOS 6.9 throws java fatal error, which is a system bug.
 
 * MAC-OS not supported
 
-* java   >= 1.8
-* tomcat >= 8
-* universal ctags
-
 # Installation Guide
 script oneKey.sh does not use apt-get or yum install
+
+* universal ctags
+* java   >= 1.8
+* tomcat >= 8
+* OpenGrok latest version
 
 ```bash
 $ sh oneKey.sh 
