@@ -2,7 +2,6 @@
 verified on 
 * Ubuntu 14.04 LTS
 * CentOS with kernel 4.4
-* MAC-OS not supported
 
 CentOS 6.9 upgrade to kernel 4.4 first, follow this guide
 
