@@ -104,7 +104,6 @@ STEP 2: INSTALLING JAVA 8 ...
 ------------------------------------------------------
 _EOF
     # instruction to install java8
-    # wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz
     JAVA_HOME=$javaInstDir
     local wgetLink="http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf"
     tarName="jdk-8u151-linux-x64.tar.gz"
@@ -300,7 +299,7 @@ STEP 3: INSTALLING TOMCAT 8 DONE ...
 _EOF
 }
 
-makeTecEnv() {
+makeDynEnv() {
     # enter into dir first
     cd $startDir
     envName=dynamic.env
@@ -343,9 +342,9 @@ STEP 4: INSTALLING OPENGROK ...
 ------------------------------------------------------
 _EOF
 
-    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc17
-    tarName=opengrok-1.1-rc17.tar.gz
-    untarName=opengrok-1.1-rc17
+    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc18
+    tarName=opengrok-1.1-rc18.tar.gz
+    untarName=opengrok-1.1-rc18
 
     cd $startDir
     # check if already has this tar ball.
@@ -369,20 +368,22 @@ _EOF
     echo ------------------------------------------------------
     echo BEGIN TO MAKE ENV FILE FOR SOURCE ...
     echo ------------------------------------------------------
-    # env name is the return value of func makeTecEnv
-    makeTecEnv
+    # call func makeDynEnv
+    makeDynEnv
     envName=$dynamicEnvName
 
     # source ./$envName
     # enter into opengrok dir
     cd $untarName/bin
+    # add write privilege to it.
     chmod +w OpenGrok
     OPENGROKPATH=`pwd`
 
     # add source command at top of script OpenGrok
+    # notice double quotation marks
     sed -i "2a source ${startDir}/${envName}" OpenGrok
-    ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok 
-    # and then can run deploy well
+    # OpenGrok can not well exected in other location.
+    # ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok 
     sudo ./OpenGrok deploy
 
     cd - &> /dev/null
@@ -412,11 +413,14 @@ echo export PATH=${commInstdir}:'$PATH'
 ******************************************************
 *                  JAVA JAVA JAVA 8                  *
 ******************************************************
+JAVA_HOME=$javaInstDir
 
 ******************************************************
 *                  TOMCAT TOMCAT 8                   *
 ******************************************************
+Under $startDir
 # start tomcat
+sudo sh ./daemon.sh run 
 sudo sh ./daemon.sh run &> /dev/null &
 # stop tomcat
 sudo sh ./daemon.sh stop
@@ -424,11 +428,14 @@ sudo sh ./daemon.sh stop
 ******************************************************
 *                  OPENGROK 1.1-RC18                 *
 ******************************************************
+Under $OPENGROKPATH 
 # deploy OpenGrok
-# under $OPENGROKPATH 
-sudo sh ./OpenGrok deploy
-# make index of source
-sudo sh ./OpenGrok index /usr/local/src/coreutils-8.21
+sudo ./OpenGrok deploy
+# make index of source (multiple index)
+sudo ./OpenGrok index /path/to/my/source
+                      /path/to/mysource/ -- proj1
+                                         -- proj2 
+                                         -- proj3 
 ------------------------------------------------------
 
 _EOF
