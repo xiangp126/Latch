@@ -456,12 +456,14 @@ install() {
 
     # restart tomcat daemon underground
     cd $startDir
-    echo -------------- STOP TOMCAT DAEMON --------------------
+    echo "************** STOP  TOMCAT DAEMON ********************"
+    echo sudo sh ./daemon.sh stop &> /dev/null
     sudo sh ./daemon.sh stop &> /dev/null
-    echo ------------- START TOMCAT DAEMON --------------------
+    echo "************** START TOMCAT DAEMON ********************"
+    echo sudo sh ./daemon.sh run &> /dev/null &
     sudo sh ./daemon.sh run &> /dev/null &
-    echo VISIT http://server-ip:8081/source
-    echo ------------------------------------------------------
+    echo "==>       http://[SERVER-IP]:8081/source"
+    echo "*******************************************************"
 }
 
 case $1 in
