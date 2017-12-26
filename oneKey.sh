@@ -74,11 +74,9 @@ _EOF
     cd $dirName
     echo cd into  "$(pwd)"/ ...
     echo Begin to compile universal ctags ...
-    sleep 1
     ./autogen.sh
     ./configure --prefix=$ctagsInstDir
     make -j
-    sleep 1
     make install
     
     cat << _EOF
@@ -457,8 +455,14 @@ install() {
     # restart tomcat daemon underground
     cd $startDir
     echo "************** STOP  TOMCAT DAEMON ********************"
-    echo sudo sh ./daemon.sh stop &> /dev/null
-    sudo sh ./daemon.sh stop &> /dev/null
+    # root     70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
+    tomcatThreads=`ps aux | grep -i tomcat | grep -i jsvc.exec | tr -s " " \
+        | cut -d " " -f 2`
+    # use kill to stop tomcat living threads.
+    if [[ "$tomcatThreads" != "" ]]; then
+        echo sudo kill -15 $tomcatThreads
+        sudo kill -15 $tomcatThreads
+    fi
     echo "************** START TOMCAT DAEMON ********************"
     echo sudo sh ./daemon.sh run &> /dev/null &
     sudo sh ./daemon.sh run &> /dev/null &
