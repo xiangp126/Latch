@@ -1,9 +1,6 @@
-# Prerequisite
-verified on 
-* Ubuntu 14.04 LTS
-* CentOS 6.9 with kernel 6.9
-
 # Installation Guide
+verified on Ubuntu 14.04 LTS | CentOS 6.9 (kernel 6.9)
+
 script oneKey.sh does not use apt-get or yum install
 
 * universal ctags
