@@ -1,13 +1,7 @@
 # Prerequisite
 verified on 
 * Ubuntu 14.04 LTS
-* CentOS with kernel 4.4
-
-CentOS 6.9 upgrade to kernel 4.4 first, follow this guide
-
-https://www.jianshu.com/p/25d8ecc75846
-
-kernel 2.6 of CentOS 6.9 throws java fatal error, which is a system bug.
+* CentOS 6.9 with kernel 6.9
 
 # Installation Guide
 script oneKey.sh does not use apt-get or yum install
@@ -110,3 +104,4 @@ sudo sh -x OpenGrok index
 # Reference
 [ubuntu install tomcat-8 - digital ocean](https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-on-ubuntu-14-04)
 
+[CentOS 6 upgrade to kernel 4.4, fixing java fatal error](https://www.jianshu.com/p/25d8ecc75846)
