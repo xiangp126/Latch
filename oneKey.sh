@@ -11,6 +11,8 @@ commInstdir=~/.usr
 ctagsInstDir=$commInstdir
 javaInstDir=/usr/lib/jvm/java-8-self
 tomcatInstDir=/opt/tomcat8-self
+# new listen port
+newListenPort=8081
 # id to run tomcat
 tomcatUser=tomcat8
 tomcatGrp=tomcat8
@@ -31,16 +33,17 @@ _EOF
 }
 
 usage() {
-	exeName=${0##*/}
+    exeName=${0##*/}
     cat << _EOF
 [NAME]
-	$exeName -- setup opengrok through one script
+    $exeName -- setup opengrok through one script
 
 [USAGE]
-	$exeName [install | help]
+    # default Listen-Port is 8081 if omitted
+    $exeName [install | help] [Listen-Port]
 
 _EOF
-	logo
+    logo
 }
 
 installCtags() {
@@ -246,12 +249,17 @@ _EOF
     # writeTomcatConf
     # sudoecho  cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
 
+    if [[ "$1"  != "" ]]; then
+        newListenPort=$1
+    fi
+
 	echo ------------------------------------------------------
-	echo change default listen port 8080 to 8081 ...
+	echo change default listen port 8080 to $newListenPort ...
     serverXmlPath=${tomHome}/conf/server.xml
     sudo cp $serverXmlPath ${serverXmlPath}.bak
-    sudo sed -i --regexp-extended 's/(<Connector port=)"8080"/\1"8081"/' \
-        ${serverXmlPath}
+    sudo sed -i --regexp-extended \
+         "s/(<Connector port=)\"8080\"/\1\"${newListenPort}\"/" \
+         $serverXmlPath
 	echo ------------------------------------------------------
 
     # make daemon script to start/shutdown Tomcat
@@ -384,7 +392,7 @@ _EOF
     sudo ./OpenGrok deploy
 
     # fix one warning
-    sudo mkdir -p ${opengrokInstanceBase}
+    sudo mkdir -p ${opengrokInstanceBase}/src
     sudo cp -f ../doc/logging.properties \
                  ${opengrokInstanceBase}/logging.properties
     cd - &> /dev/null
@@ -430,14 +438,21 @@ sudo sh ./daemon.sh stop
 *                  OPENGROK 1.1-RC18                 *
 ******************************************************
 Under $OPENGROKPATH 
+--------------------------------------------------------
 # deploy OpenGrok
 sudo ./OpenGrok deploy
+--------------------------------------------------------
+# make soft link of source to SRC_ROOT
+# care for Permission of SRC_ROOT for user: $tomcatUser
+cd ${opengrokInstanceBase}
+sudo ln -s /usr/local/src/* .
+--------------------------------------------------------
 # make index of source (multiple index)
-sudo ./OpenGrok index /path/to/my/source
-                      /path/to/mysource/ -- proj1
-                                         -- proj2 
-                                         -- proj3 
-------------------------------------------------------
+sudo ./OpenGrok index [${opengrokInstanceBase}/src]
+                       /var/opengrok/src   -- proj1
+                                           -- proj2 
+                                           -- proj3 
+--------------------------------------------------------
 
 _EOF
 }
@@ -447,7 +462,8 @@ install() {
     sleep 1
 	installJava8
     sleep 1
-	installTomcat8
+    # $1 : new listen port
+	installTomcat8 $1
     sleep 1
     installOpenGrok
 
@@ -467,19 +483,20 @@ install() {
         sudo kill -15 $tomcatThreads
     fi
     echo "************** START TOMCAT DAEMON ********************"
-    echo "==>       sudo ./daemon.sh start                        "
+    echo sudo ./daemon.sh start
     sudo ./daemon.sh start
     if [[ $? != 0 ]]; then
         echo [Error]: Tomcat start failed, exit now ...
         exit
     fi
-    echo "==>       http://[SERVER-IP]:8081/source"
+    echo "************** OPEN BROWSER VISIT ********************"
+    echo "==>       http://127.0.0.1:${newListenPort}/source"
     echo "*******************************************************"
     
     cat << _EOF
 GUIDE TO CHANGE LISTEN PORT ...
 # replace 8080 to the port you want to change
-sudo sed -i 's/8081/8080/' $serverXmlPath
+sudo sed -i 's/${newListenPort}/8080/' $serverXmlPath
 sudo ./daemon.sh stop
 sudo ./daemon.sh start
 ------------------------------------------------------
@@ -488,7 +505,7 @@ _EOF
 
 case $1 in
     'install')
-        install
+        install $2
     ;;
 
     *)
