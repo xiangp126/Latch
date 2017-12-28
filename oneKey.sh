@@ -232,14 +232,13 @@ _EOF
 	# untar into /opt/tomcat and strip one level directory
 	sudo tar -zxv -f $tarName -C $tomHome --strip-components=1
 
+    # change owner:group of TOMCAT_HOME
+    sudo chown -R $newUser:$newGrp $tomHome
 	cd $tomHome
 	echo ------------------------------------------------------
     echo cd into  "$(pwd)"/ ...
-
-	sudo chgrp -R $newGrp conf
 	sudo chmod 775 conf
 	sudo chmod g+r conf/*
-	sudo chown -R $newUser work/ temp/ logs/
 
 	# echo ------------------------------------------------------
     # echo START TO MAKE TOMCAT CONF FILE ...
@@ -384,6 +383,10 @@ _EOF
     # ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok 
     sudo ./OpenGrok deploy
 
+    # fix one warning
+    sudo mkdir -p ${opengrokInstanceBase}
+    sudo cp -f ../doc/logging.properties \
+                 ${opengrokInstanceBase}/logging.properties
     cd - &> /dev/null
 
     cat << "_EOF"
@@ -464,10 +467,23 @@ install() {
         sudo kill -15 $tomcatThreads
     fi
     echo "************** START TOMCAT DAEMON ********************"
-    echo sudo sh ./daemon.sh run &> /dev/null &
-    sudo sh ./daemon.sh run &> /dev/null &
+    echo "==>       sudo ./daemon.sh start                        "
+    sudo ./daemon.sh start
+    if [[ $? != 0 ]]; then
+        echo [Error]: Tomcat start failed, exit now ...
+        exit
+    fi
     echo "==>       http://[SERVER-IP]:8081/source"
     echo "*******************************************************"
+    
+    cat << _EOF
+GUIDE TO CHANGE LISTEN PORT ...
+# replace 8080 to the port you want to change
+sudo sed -i 's/8081/8080/' $serverXmlPath
+sudo ./daemon.sh stop
+sudo ./daemon.sh start
+------------------------------------------------------
+_EOF
 }
 
 case $1 in
