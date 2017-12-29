@@ -3,23 +3,24 @@ set -x
 
 # this shell start dir, normally original path
 startDir=`pwd`
-# main work directory, usually ~/myGit
+# main work directory, usually ~/myGit/XX
 mainWd=$startDir
 
 # common install directory
-commInstdir=~/.usr
-ctagsInstDir=$commInstdir
-javaInstDir=/usr/lib/jvm/java-8-self
-tomcatInstDir=/opt/tomcat8-self
-# new listen port
-newListenPort=8081
+commInstdir=/opt
+ctagsInstDir=${commInstdir}/u-ctags
+javaInstDir=/opt/java8
+tomcatInstDir=/opt/tomcat8
+# default new listen port is 8080
+newListenPort=8080
+# dynamic env global name
+dynamicEnvName=dynamic.env
+opengrokInstanceBase=/opt/opengrok
+opengrokSrcRoot=${opengrokInstanceBase}/src
+OPENGROKPATH=""
 # id to run tomcat
 tomcatUser=tomcat8
 tomcatGrp=tomcat8
-# dynamic env global name
-dynamicEnvName=dynamic.env
-opengrokInstanceBase=/var/opengrok
-OPENGROKPATH=""
 
 logo() {
     cat << "_EOF"
@@ -39,7 +40,7 @@ usage() {
     $exeName -- setup opengrok through one script
 
 [USAGE]
-    # default Listen-Port is 8081 if omitted
+    # default Listen-Port is $newListenPort if para was omitted
     $exeName [install | help] [Listen-Port]
 
 _EOF
@@ -80,7 +81,7 @@ _EOF
     ./autogen.sh
     ./configure --prefix=$ctagsInstDir
     make -j
-    make install
+    sudo make install
     
     cat << _EOF
     
@@ -249,18 +250,21 @@ _EOF
     # writeTomcatConf
     # sudoecho  cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
 
-    if [[ "$1"  != "" ]]; then
+    if [[ "$1" != "" ]]; then
         newListenPort=$1
     fi
 
-	echo ------------------------------------------------------
-	echo change default listen port 8080 to $newListenPort ...
-    serverXmlPath=${tomHome}/conf/server.xml
-    sudo cp $serverXmlPath ${serverXmlPath}.bak
-    sudo sed -i --regexp-extended \
-         "s/(<Connector port=)\"8080\"/\1\"${newListenPort}\"/" \
-         $serverXmlPath
-	echo ------------------------------------------------------
+    # do the sed routine only if newListenPort != default port
+    if [[ "$newListenPort" != 8080 ]]; then
+    	echo ------------------------------------------------------
+    	echo change default listen port 8080 to $newListenPort ...
+        serverXmlPath=${tomHome}/conf/server.xml
+        sudo cp $serverXmlPath ${serverXmlPath}.bak
+        sudo sed -i --regexp-extended \
+             "s/(<Connector port=)\"8080\"/\1\"${newListenPort}\"/" \
+             $serverXmlPath
+    	echo ------------------------------------------------------
+    fi
 
     # make daemon script to start/shutdown Tomcat
     cd $startDir
@@ -315,6 +319,7 @@ makeDynEnv() {
     cat > $envName << _EOF
 #!/bin/bash
 export COMMON_INSTALL_DIR=$commInstdir
+export CTAGS_INSTALL_DIR=${ctagsInstDir}/bin
 export JAVA_HOME=${javaInstDir}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
@@ -325,11 +330,12 @@ export CATALINA_BASE=${TOMCAT_HOME}
 export CATALINA_TMPDIR=${TOMCAT_HOME}/temp
 export OPENGROK_INSTANCE_BASE=${opengrokInstanceBase}
 export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
+export OPENGROK_SRC_ROOT=$opengrokSrcRoot
 _EOF
 
     # do not parse value of $var
     cat >> $envName << "_EOF"
-export PATH=${COMMON_INSTALL_DIR}/bin:${JAVA_HOME}/bin:$PATH
+export PATH=${CTAGS_INSTALL_DIR}/bin:${JAVA_HOME}/bin:/usr/bin:/bin
 _EOF
 
     chmod +x $envName
@@ -395,6 +401,10 @@ _EOF
     sudo mkdir -p ${opengrokInstanceBase}/src
     sudo cp -f ../doc/logging.properties \
                  ${opengrokInstanceBase}/logging.properties
+    # mkdir opengrok SRC_ROOT if not exist
+    sudo mkdir -p $opengrokSrcRoot
+
+    # go back to original directory
     cd - &> /dev/null
 
     cat << "_EOF"
@@ -415,7 +425,7 @@ summaryInstall() {
 *                  UNIVERSAL CTAGS                   *
 ******************************************************
 _EOF
-echo export PATH=${commInstdir}:'$PATH'
+echo export PATH=${ctagsInstDir}/bin:'$PATH'
 
     cat << _EOF
 
@@ -444,12 +454,12 @@ sudo ./OpenGrok deploy
 --------------------------------------------------------
 # make soft link of source to SRC_ROOT
 # care for Permission of SRC_ROOT for user: $tomcatUser
-cd ${opengrokInstanceBase}
+cd $opengrokSrcRoot
 sudo ln -s /usr/local/src/* .
 --------------------------------------------------------
 # make index of source (multiple index)
 sudo ./OpenGrok index [${opengrokInstanceBase}/src]
-                       /var/opengrok/src   -- proj1
+                       /opt/opengrok/src   -- proj1
                                            -- proj2 
                                            -- proj3 
 --------------------------------------------------------
@@ -495,7 +505,7 @@ install() {
     
     cat << _EOF
 GUIDE TO CHANGE LISTEN PORT ...
-# replace 8080 to the port you want to change
+# replace s/original/8080/ to the port you want to change
 sudo sed -i 's/${newListenPort}/8080/' $serverXmlPath
 sudo ./daemon.sh stop
 sudo ./daemon.sh start
