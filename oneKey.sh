@@ -331,6 +331,7 @@ export CATALINA_TMPDIR=${TOMCAT_HOME}/temp
 export OPENGROK_INSTANCE_BASE=${opengrokInstanceBase}
 export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
 export OPENGROK_SRC_ROOT=$opengrokSrcRoot
+export OPENGROK_CTAGS=${ctagsInstDir}/bin/ctags
 _EOF
 
     # do not parse value of $var
