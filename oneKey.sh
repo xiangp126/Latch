@@ -331,12 +331,13 @@ export CATALINA_TMPDIR=${TOMCAT_HOME}/temp
 export OPENGROK_INSTANCE_BASE=${opengrokInstanceBase}
 export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
 export OPENGROK_SRC_ROOT=$opengrokSrcRoot
+# export OPENGROK_WEBAPP_CONTEXT=ROOT
 export OPENGROK_CTAGS=${ctagsInstDir}/bin/ctags
 _EOF
 
     # do not parse value of $var
     cat >> $envName << "_EOF"
-export PATH=${CTAGS_INSTALL_DIR}/bin:${JAVA_HOME}/bin:/usr/bin:/bin
+export PATH=${JAVA_HOME}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
 _EOF
 
     chmod +x $envName
