@@ -353,9 +353,9 @@ STEP 4: INSTALLING OPENGROK ...
 ------------------------------------------------------
 _EOF
 
-    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc18
-    tarName=opengrok-1.1-rc18.tar.gz
-    untarName=opengrok-1.1-rc18
+    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc17
+    tarName=opengrok-1.1-rc17.tar.gz
+    untarName=opengrok-1.1-rc17
 
     cd $startDir
     # check if already has this tar ball.
