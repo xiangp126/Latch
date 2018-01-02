@@ -16,7 +16,7 @@ newListenPort=8080
 # dynamic env global name
 dynamicEnvName=dynamic.env
 opengrokInstanceBase=/opt/opengrok
-opengrokSrcRoot=${opengrokInstanceBase}/src
+opengrokSrcRoot=${commInstdir}/source
 OPENGROKPATH=""
 # id to run tomcat
 tomcatUser=tomcat8
@@ -460,10 +460,10 @@ cd $opengrokSrcRoot
 sudo ln -s /usr/local/src/* .
 --------------------------------------------------------
 # make index of source (multiple index)
-sudo ./OpenGrok index [${opengrokInstanceBase}/src]
-                       /opt/opengrok/src   -- proj1
-                                           -- proj2 
-                                           -- proj3 
+sudo ./OpenGrok index [$opengrokSrcRoot]
+                       /opt/source   -- proj1
+                                     -- proj2 
+                                     -- proj3 
 --------------------------------------------------------
 
 _EOF
