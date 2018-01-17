@@ -215,8 +215,8 @@ _EOF
 	fi
 	
     #begin download issue
-	wgetLink="http://mirror.jax.hugeserver.com/apache/tomcat/tomcat-8/v8.5.24/bin"
-	tarName="apache-tomcat-8.5.24.tar.gz"
+    wgetLink=http://mirror.olnevhost.net/pub/apache/tomcat/tomcat-8/v8.5.24/bin
+    tarName=apache-tomcat-8.5.24.tar.gz
 
     cd $startDir
     # check if already has this tar ball.
@@ -506,11 +506,11 @@ tackleWebService() {
 STOP TOMCAT DAEMON ALREADY RUNNING ...
 --------------------------------------------------------
 _EOF
-    sudo ./daemon.sh stop
-    if [[ $? != 0 ]]; then
-        echo [Error]: Tomcat threads stop failed, exit now ...
-        exit
-    fi
+    # sudo ./daemon.sh stop
+    # if [[ $? != 0 ]]; then
+    #     echo [Error]: Tomcat threads stop failed, exit now ...
+    #     exit
+    # fi
     # root   70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
     tomcatThreads=`ps aux | grep -i tomcat | grep -i jsvc.exec | tr -s " " \
         | cut -d " " -f 2`
