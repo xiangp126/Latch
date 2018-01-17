@@ -31,7 +31,7 @@ $ sh oneKey.sh help
 -------------------------------------------------
 FOR TOMCAT 8 HELP
 -------------------------------------------------
--- Under /home/corsair/myGit/cc-opengrok
+-- Under ~/myGit/cc-opengrok
 # start tomcat
 sudo ./daemon.sh start
 or
