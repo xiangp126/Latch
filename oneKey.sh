@@ -101,6 +101,11 @@ _EOF
 }
 
 installJava8() {
+    checkName=$javaInstDir/bin/java
+    if [[ -x $checkName ]]; then
+        echo "[Warning]: already has java 8 installed , omitting this step ..."
+        return
+    fi
     cat << "_EOF"
 ------------------------------------------------------
 STEP 2: INSTALLING JAVA 8 ...
@@ -140,7 +145,7 @@ _EOF
         echo [Error]: untar java package returns error, quitting now ...
         exit
     fi
-    checkName=$javaInstDir/bin/java
+    #checkName=$javaInstDir/bin/java
     if [[ ! -x $checkName ]]; then
         echo [Error]: java install error, quitting now ...
         exit
@@ -190,6 +195,11 @@ _EOF
 }
 
 installTomcat8() {
+    checkName=$tomcatInstDir/bin/jsvc
+    if [[ -x $checkName ]]; then
+        echo "[Warning]: already has tomcat 8 installed, omitting this step ..."
+        return
+    fi
     cat << "_EOF"
 ------------------------------------------------------
 STEP 3: INSTALLING TOMCAT 8 ...
@@ -443,7 +453,7 @@ _EOF
 installSummary() {
     cat << _EOF
 ------------------------------------------------------
-INSTALLATION SUMMARY
+TOMCAT STARTED SUCCESSFULLY
 ------------------------------------------------------
 universal ctags path = ${uCtagsInstDir}/bin/ctags
 java path = $javaInstDir/bin/java
@@ -506,45 +516,38 @@ tackleWebService() {
 STOP TOMCAT DAEMON ALREADY RUNNING ...
 --------------------------------------------------------
 _EOF
-    # sudo ./daemon.sh stop
-    # if [[ $? != 0 ]]; then
-    #     echo [Error]: Tomcat threads stop failed, exit now ...
-    #     exit
-    # fi
-    # root   70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
-    tomcatThreads=`ps aux | grep -i tomcat | grep -i jsvc.exec | tr -s " " \
-        | cut -d " " -f 2`
-    # use kill to stop tomcat living threads if daemon stop failed
-    if [[ "$tomcatThreads" != "" ]]; then
-        for thread in ${tomcatThreads[@]}
-        do
-            $execPrefix kill -9 $thread
-        done
-    fi
-    if [[ $? != 0 ]]; then
-        echo [Error]: Tomcat threads stop failed, exit now ...
-        exit
-    fi
+    #not check exit status
+    sudo ./daemon.sh stop
+    # loop to kill tomcat living threads
+    # for (( i = 0; i < 10; i++ )); do
+    #     # root   70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
+    #     tomcatThreads=`ps aux | grep -i tomcat | grep -i jsvc.exec | tr -s " " \
+    #         | cut -d " " -f 2`
+    #     if [[ "$tomcatThreads" != "" ]]; then
+    #         $execPrefix kill -15 $tomcatThreads
+    #         if [[ $? != 0 ]]; then
+    #             echo [Error]: Tomcat threads stop failed $(echo $1 + 1 | bc) time ...
+    #             sleep 1
+    #             continue
+    #         fi
+    #     else 
+    #         break
+    #     fi
+    # done
     cat << _EOF
 --------------------------------------------------------
 START TOMCAT WEB SERVICE ...
 --------------------------------------------------------
 _EOF
-    sleep 2
+    sleep 1
     #try some times to start tomcat web service
-    for (( i = 0; i < 3; i++ )); do
-        $execPrefix ./daemon.sh start
-        if [[ $? != 0 ]]; then
-            echo [Error]: Tomcat start failed $(echo $i + 1 | bc) time ...
-            sleep 1
-        else
-            echo "Tomcat started successfully ..."
-            return
-        fi
-    done
-    #start failed at last
-    echo "You should manually start tomcat daemon sudo ./daemon.sh start"
-    exit
+    $execPrefix ./daemon.sh start
+    #the return status not accuracy
+    # if [[ $? != 0 ]]; then
+    #     echo [Error]: Tomcat failed to start ...
+    #     echo please run this script again.
+    #     exit
+    # fi
 }
 
 install() {
