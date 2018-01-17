@@ -19,9 +19,11 @@ dynamicEnvName=dynamic.env
 opengrokInstanceBase=/opt/opengrok
 opengrokSrcRoot=${commInstdir}/o-source
 OPENGROKPATH=""
-# id to run tomcat
+# new user/group to run tomcat
 tomcatUser=tomcat8
 tomcatGrp=tomcat8
+#store install summary
+summaryTxt=INSTALLATION.TXT
 
 logo() {
     cat << "_EOF"
@@ -150,11 +152,11 @@ _EOF
         echo [Error]: java install error, quitting now ...
         exit
     fi
+    $($javaInstDir/bin/java -version)
     cat << _EOF
 ------------------------------------------------------
 java package install path = $javaInstDir
 java path = $javaInstDir/bin/java
-$($javaInstDir/bin/java -version)
 ------------------------------------------------------
 _EOF
 }
@@ -451,7 +453,7 @@ _EOF
 }
 
 installSummary() {
-    cat << _EOF
+    cat > $summaryTxt << _EOF
 ------------------------------------------------------
 TOMCAT STARTED SUCCESSFULLY
 ------------------------------------------------------
@@ -465,6 +467,7 @@ opengrok source root = $opengrokSrcRoot
 http://127.0.0.1:${newListenPort}/source
 ------------------------------------------------------
 _EOF
+    cat $summaryTxt
 }
 
 printHelpPage() {
@@ -505,6 +508,9 @@ sudo ./daemon.sh stop
 sudo ./daemon.sh start
 ------------------------------------------------------
 _EOF
+    if [[ -f $summaryTxt ]]; then
+        cat $summaryTxt
+    fi
 }
 
 #start web service
@@ -518,6 +524,11 @@ STOP TOMCAT DAEMON ALREADY RUNNING ...
 _EOF
     #not check exit status
     sudo ./daemon.sh stop
+    retVal=$?
+    #just print warning
+    if [[ $retVal != 0 ]]; then
+        echo "[Warning]: daemon stop returns value: $retVal"
+    fi
     # loop to kill tomcat living threads
     # for (( i = 0; i < 10; i++ )); do
     #     # root   70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
@@ -542,12 +553,11 @@ _EOF
     sleep 1
     #try some times to start tomcat web service
     $execPrefix ./daemon.sh start
-    #the return status not accuracy
-    # if [[ $? != 0 ]]; then
-    #     echo [Error]: Tomcat failed to start ...
-    #     echo please run this script again.
-    #     exit
-    # fi
+    retVal=$?
+    #just print warning
+    if [[ $retVal != 0 ]]; then
+        echo "[Warning]: daemon start returns value: $retVal"
+    fi
 }
 
 install() {
