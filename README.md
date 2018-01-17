@@ -25,6 +25,46 @@ $ sh oneKey.sh
  \___/| .__/ \___|_| |_|\__, |_|  \___/|_|\_\
       |_|               |___/
 
+```
+```bash
+$ sh oneKey.sh help
+-------------------------------------------------
+FOR TOMCAT 8 HELP
+-------------------------------------------------
+-- Under /home/corsair/myGit/cc-opengrok
+# start tomcat
+sudo ./daemon.sh start
+or
+sudo ./daemon.sh run
+sudo ./daemon.sh run &> /dev/null &
+# stop tomcat
+sudo ./daemon.sh stop
+-------------------------------------------------
+FOR OPENGROK HELP
+-------------------------------------------------
+-- Under ./opengrok-1.1-rc17/bin
+# deploy OpenGrok
+sudo ./OpenGrok deploy
+
+# make soft link of source to SRC_ROOT
+# care for Permission of SRC_ROOT for user: tomcat8
+cd /opt/o-source
+sudo ln -s /usr/local/src/* .
+
+# make index of source (multiple index)
+sudo ./OpenGrok index [/opt/o-source]
+                       /opt/source   -- proj1
+                                     -- proj2
+                                     -- proj3
+--------------------------------------------------------
+-- GUIDE TO CHANGE LISTEN PORT ...
+# replace s/original/8080/ to the port you want to change
+sudo sed -i 's/8080/8080/'
+sudo ./daemon.sh stop
+sudo ./daemon.sh start
+------------------------------------------------------
+```
+```bash
 $ sh oneKey.sh install
 ```
 
