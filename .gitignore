@@ -4,10 +4,7 @@
 server.xml
 tomcat.conf
 dynamic.env
-apache-*
 daemon.sh
-jdk-*
-jre*
-ctags/
 opengrok-*
 INSTALLATION.TXT
+downloads/

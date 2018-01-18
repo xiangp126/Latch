@@ -1,8 +1,8 @@
 #!/bin/bash
-# this shell start dir, normally original path
+# where is shell executed
 startDir=`pwd`
-# main work directory, usually ~/myGit/XX
-mainWd=$startDir
+# main work directory, not influenced by start dir
+mainWd=$(cd $(dirname $0); pwd)
 # common install directory
 rootInstDir=/opt
 commInstdir=$rootInstDir
@@ -24,6 +24,8 @@ tomcatUser=tomcat8
 tomcatGrp=tomcat8
 #store install summary
 summaryTxt=INSTALLATION.TXT
+# store all downloaded packages here
+downloadPath=$mainWd/downloads
 
 logo() {
     cat << "_EOF"
@@ -65,7 +67,7 @@ STEP 1: INSTALLING UNIVERSAL CTAGS ...
 _EOF
     CTAGS_HOME=$uCtagsInstDir
 
-    cd $startDir
+    cd $downloadPath
     clonedName=ctags
     if [[ -d "$clonedName" ]]; then
         echo [Warning]: $clonedName/ already exists, omitting this step ...
@@ -120,7 +122,7 @@ _EOF
     #untarName=jdk1.8.0_161
 
     # rename download package
-    cd $startDir
+    cd $downloadPath
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
         echo [Warning]: Tar Ball $tarName already exists, omitting wget ...
@@ -193,7 +195,6 @@ description "Tomcat Server"
     rm -rf $CATALINA_HOME/temp/*
   end script
 _EOF
-    cd - &> /dev/null
 }
 
 installTomcat8() {
@@ -230,7 +231,7 @@ _EOF
     wgetLink=http://mirror.olnevhost.net/pub/apache/tomcat/tomcat-8/v8.5.24/bin
     tarName=apache-tomcat-8.5.24.tar.gz
 
-    cd $startDir
+    cd $downloadPath
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
         echo [Warning]: Tar Ball $tarName already exists, omitting wget ...
@@ -267,7 +268,7 @@ _EOF
     # echo START TO MAKE TOMCAT CONF FILE ...
 	# echo ------------------------------------------------------
     # writeTomcatConf
-    # $execPrefix echo  cp ${startDir}/tomcat.conf /etc/init/tomcat.conf
+    # $execPrefix echo  cp ${mainWd}/tomcat.conf /etc/init/tomcat.conf
 
     #check if listen-port was passed as $1 argument
     if [[ "$1" != "" ]]; then
@@ -292,7 +293,7 @@ _EOF
     fi
 
     # make daemon script to start/shutdown Tomcat
-    cd $startDir
+    cd $mainWd
     envName=$dynamicEnvName
     #sample/template script to copy from
     smpScripName=./template/daemon.sh.template
@@ -300,7 +301,7 @@ _EOF
     daeName=daemon.sh
     cp $smpScripName $daeName
     # add source command at top of script daemon.sh
-    sed -i "2a source ${startDir}/${envName}" $daeName
+    sed -i "2a source ${mainWd}/${envName}" $daeName
     # check if make returns successfully
     if [[ $? != 0 ]]; then
         echo [Error]: sed returns error, quitting now ...
@@ -344,7 +345,7 @@ _EOF
     $execPrefix chown -R $newUser:$newGrp jsvc
     # $execPrefix rm -rf $untarName
 
-    # cd $startDir
+    # cd $mainWd
     # echo Stop Tomcat Daemon ...
     # $execPrefix sh ./daemon.sh stop &> /dev/null
     # echo Start Tomcat Daemon ...
@@ -353,7 +354,7 @@ _EOF
 
 makeDynEnv() {
     # enter into dir first
-    cd $startDir
+    cd $mainWd
     envName=dynamic.env
     TOMCAT_HOME=${tomcatInstDir}
     CATALINA_HOME=$TOMCAT_HOME
@@ -398,7 +399,7 @@ _EOF
     tarName=opengrok-1.1-rc17.tar.gz
     untarName=opengrok-1.1-rc17
 
-    cd $startDir
+    cd $downloadPath
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
         echo [Warning]: Tar Ball $tarName already exists, omitting wget ...
@@ -438,8 +439,10 @@ _EOF
     OPENGROKPATH=`pwd`
 
     # add source command on top of script OpenGrok
+    # delete already command at first
     # notice double quotation marks
-    sed -i "2a source ${startDir}/${envName}" OpenGrok
+    sed -i '/^source.*env$/d' OpenGrok 2> /dev/null
+    sed -i "2a source ${mainWd}/${envName}" OpenGrok
     $execPrefix ./$ogExecFile deploy
     # [Warning]: OpenGrok can not be well executed in other location.
     # ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok 
@@ -475,7 +478,7 @@ printHelpPage() {
 -------------------------------------------------
 FOR TOMCAT 8 HELP
 -------------------------------------------------
--- Under $startDir
+-- Under $mainWd
 # start tomcat
 sudo ./daemon.sh start
 or
@@ -486,7 +489,7 @@ sudo ./daemon.sh stop
 -------------------------------------------------
 FOR OPENGROK HELP
 -------------------------------------------------
--- Under ./opengrok-1.1-rc17/bin
+-- Under ./downloads/opengrok-1.1-rc17/bin
 # deploy OpenGrok
 sudo ./OpenGrok deploy
 
@@ -516,7 +519,7 @@ _EOF
 #start web service
 tackleWebService() {
     # restart tomcat daemon underground
-    cd $startDir
+    cd $mainWd
     cat << _EOF
 --------------------------------------------------------
 STOP TOMCAT DAEMON ALREADY RUNNING ...
@@ -561,6 +564,7 @@ _EOF
 }
 
 install() {
+    mkdir -p $downloadPath
     installCtags
 	installJava8
     #$1 passed as new listen port
