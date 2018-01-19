@@ -1,7 +1,9 @@
 ## CC-OpenGrok
 Goal to deploy OpenGrok through onekey stroke under Unix like platform
 
-Verified on Ubuntu 14.04 LTS | CentOS 6.9 (kernel 6.9)
+Automatically generating needed env files, no need extra PATH set
+
+Verified on Ubuntu 14.04 LTS | CentOS 6.9
 
 * universal ctags
 * java   >= 1.8
