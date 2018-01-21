@@ -50,6 +50,9 @@ usage() {
     #default Listen-Port is $newListenPort if para was omitted
     $exeName [install | help] [Listen-Port]
 
+[TIPS]
+    clean up your installation directory before run $exeName 
+
 _EOF
     logo
 }
@@ -356,6 +359,7 @@ makeDynEnv() {
     # enter into dir first
     cd $mainWd
     envName=dynamic.env
+    JAVA_HOME=$javaInstDir
     TOMCAT_HOME=${tomcatInstDir}
     CATALINA_HOME=$TOMCAT_HOME
 
@@ -364,7 +368,7 @@ makeDynEnv() {
 #!/bin/bash
 export COMMON_INSTALL_DIR=$commInstdir
 export CTAGS_INSTALL_DIR=${uCtagsInstDir}/bin
-export JAVA_HOME=${javaInstDir}
+export JAVA_HOME=${JAVA_HOME}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
 export TOMCAT_USER=${tomcatUser}
@@ -457,7 +461,6 @@ _EOF
 
 installSummary() {
     cat > $summaryTxt << _EOF
-------------------------------------------------------
 TOMCAT STARTED SUCCESSFULLY
 ------------------------------------------------------
 universal ctags path = ${uCtagsInstDir}/bin/ctags
