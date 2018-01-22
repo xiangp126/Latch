@@ -1,5 +1,5 @@
 ## CC-OpenGrok
-Goal to deploy OpenGrok through onekey stroke under Unix like platform
+Goal to deploy OpenGrok under Linux like platform through onekey stroke 
 
 Automatically generating needed env files, no need extra PATH set
 
