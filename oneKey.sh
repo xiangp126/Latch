@@ -415,11 +415,10 @@ _EOF
         echo [Warning]: Tar Ball $tarName already exists, omitting wget
     else
         wget --no-cookies \
-        --no-check-certificate \
-        --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-        "${wgetLink}/${tarName}" \
-        -O $tarName
-
+             --no-check-certificate \
+             --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+             "${wgetLink}/${tarName}" \
+             -O $tarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
             echo [Error]: wget returns error, quiting now
