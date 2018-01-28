@@ -6,9 +6,9 @@ mainWd=$(cd $(dirname $0); pwd)
 # common install directory
 rootInstDir=/opt
 commInstdir=$rootInstDir
-#execute prefix: sudo
+# execute prefix: sudo
 execPrefix="sudo"
-#universal ctags install dir
+# universal ctags install dir
 uCtagsInstDir=${commInstdir}/u-ctags
 javaInstDir=/opt/java8
 tomcatInstDir=/opt/tomcat8
@@ -22,7 +22,7 @@ OPENGROKPATH=""
 # new user/group to run tomcat
 tomcatUser=tomcat8
 tomcatGrp=tomcat8
-#store install summary
+# store install summary
 summaryTxt=INSTALLATION.TXT
 # store all downloaded packages here
 downloadPath=$mainWd/downloads
@@ -47,7 +47,7 @@ usage() {
                 | no need run with sudo prefix
 
 [USAGE]
-    #default Listen-Port is $newListenPort if para was omitted
+    # default Listen-Port is $newListenPort if para was omitted
     $exeName [install | help] [Listen-Port]
 
 [TIPS]
@@ -57,10 +57,11 @@ _EOF
     logo
 }
 
-installCtags() {
+installuCtags() {
     # check if already installed
     checkCmd=`ctags --version | grep -i universal 2> /dev/null`
     if [[ $checkCmd != "" ]]; then
+        uCtagsPath=`which ctags`
         return
     fi
     # check if this shell already installed u-ctags
@@ -128,7 +129,7 @@ _EOF
     JAVA_HOME=$javaInstDir
     wgetLink=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808
     tarName=jdk-8u161-linux-x64.tar.gz
-    #untarName=jdk1.8.0_161
+    # untarName=jdk1.8.0_161
 
     # rename download package
     cd $downloadPath
@@ -236,7 +237,7 @@ _EOF
         $execPrefix useradd -s /bin/false -g $newGrp -d $tomcatInstDir $newUser
     fi
 
-    #begin download issue
+    # begin download issue
     wgetLink=http://mirror.olnevhost.net/pub/apache/tomcat/tomcat-8/v8.5.24/bin
     tarName=apache-tomcat-8.5.24.tar.gz
 
@@ -279,7 +280,7 @@ _EOF
     # writeTomcatConf
     # $execPrefix echo  cp ${mainWd}/tomcat.conf /etc/init/tomcat.conf
 
-    #check if listen-port was passed as $1 argument
+    # check if listen-port was passed as $1 argument
     if [[ "$1" != "" ]]; then
         newListenPort=$1
     fi
@@ -304,7 +305,7 @@ _EOF
     # make daemon script to start/shutdown Tomcat
     cd $mainWd
     envName=$dynamicEnvName
-    #sample/template script to copy from
+    # sample/template script to copy from
     smpScripName=./template/daemon.sh.template
     # copied to name
     daeName=daemon.sh
@@ -441,7 +442,7 @@ _EOF
     # source ./$envName
     # enter into opengrok dir
     cd $untarName/bin
-    #OpenGrok executable file name is OpenGrok
+    # OpenGrok executable file name is OpenGrok
     ogExecFile=OpenGrok
     # add write privilege to it.
     chmod +w $ogExecFile
@@ -533,7 +534,7 @@ tackleWebService() {
 STOP TOMCAT DAEMON ALREADY RUNNING
 --------------------------------------------------------
 _EOF
-    #not check exit status
+    # not check exit status
     sudo ./daemon.sh stop
     retVal=$?
     #just print warning
@@ -562,10 +563,10 @@ START TOMCAT WEB SERVICE
 --------------------------------------------------------
 _EOF
     sleep 1
-    #try some times to start tomcat web service
+    # try some times to start tomcat web service
     $execPrefix ./daemon.sh start
     retVal=$?
-    #just print warning
+    # just print warning
     if [[ $retVal != 0 ]]; then
         echo "[Warning]: daemon start returns value: $retVal"
     fi
@@ -573,9 +574,9 @@ _EOF
 
 install() {
     mkdir -p $downloadPath
-    installCtags
+    installuCtags
     installJava8
-    #$1 passed as new listen port
+    # $1 passed as new listen port
     installTomcat8 $1
     installOpenGrok
     tackleWebService
@@ -586,15 +587,15 @@ case $1 in
     'install')
         set -x
         install $2
-    ;;
+        ;;
 
     "help")
         set +x
         printHelpPage
-    ;;
+        ;;
 
     *)
         set +x
         usage
-    ;;
+        ;;
 esac
