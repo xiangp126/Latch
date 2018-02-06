@@ -14,6 +14,8 @@ javaInstDir=/opt/java8
 tomcatInstDir=/opt/tomcat8
 # default new listen port is 8080
 newListenPort=8080
+serverXmlPath=${tomcatInstDir}/conf/server.xml
+srvXmlTemplate=$mainWd/template/server.xml
 # dynamic env global name
 dynamicEnvName=dynamic.env
 opengrokInstanceBase=/opt/opengrok
@@ -107,23 +109,23 @@ _EOF
     fi
     cat << _EOF
 ------------------------------------------------------
-ctags path = $uCtagsInstDir/bin/ctags
+ctags path = $uCtagsPath
 ------------------------------------------------------
-$($uCtagsInstDir/bin/ctags --version)
+$($uCtagsPath --version)
 _EOF
 }
 
 installJava8() {
-    checkName=$javaInstDir/bin/java
-    if [[ -x $checkName ]]; then
-        echo "[Warning]: already has java 8 installed"
-        return
-    fi
     cat << "_EOF"
 ------------------------------------------------------
 INSTALLING JAVA 8
 ------------------------------------------------------
 _EOF
+    javaPath=$javaInstDir/bin/java
+    if [[ -x $javaPath ]]; then
+        echo "[Warning]: already has java 8 installed"
+        return
+    fi
     # instruction to install java8
     JAVA_HOME=$javaInstDir
     wgetLink=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808
@@ -150,43 +152,72 @@ _EOF
     if [[ ! -d $javaInstDir ]]; then
         $execPrefix mkdir -p $javaInstDir
         $execPrefix tar -zxv -f $tarName --strip-components=1 -C $javaInstDir
-        # no more need make soft link for java, will added in PATH
-        # ln -sf ${javaInstDir}/bin/java ${commInstdir}/bin/java
+        # check if returns successfully
+        if [[ $? != 0 ]]; then
+            echo [Error]: untar java package error, quitting now
+            exit
+        fi
     fi
-    # check if make returns successfully
-    if [[ $? != 0 ]]; then
-        echo [Error]: untar java package error, quitting now
-        exit
-    fi
-    #checkName=$javaInstDir/bin/java
-    if [[ ! -x $checkName ]]; then
+    # javaPath=$javaInstDir/bin/java
+    if [[ ! -x $javaPath ]]; then
         echo [Error]: java install error, quitting now
         exit
     fi
-    $($javaInstDir/bin/java -version)
+    $($javaPath -version)
     cat << _EOF
 ------------------------------------------------------
 java package install path = $javaInstDir
-java path = $javaInstDir/bin/java
+java path = $javaPath
 ------------------------------------------------------
 _EOF
 }
 
-installTomcat8() {
-    checkName=$tomcatInstDir/bin/jsvc
-    if [[ -x $checkName ]]; then
-        echo "[Warning]: already has tomcat 8 installed"
-        return
+changeListenPort() {
+    # change listen port if not the default value, passed as $1
+    if [[ "$1" != "" && "$1" != 8080 ]]; then
+        newListenPort=$1
+        cat << _EOF
+------------------------------------------------------
+CHANGING DEFAULT LISTEN PORT 8080 TO $newListenPort
+------------------------------------------------------
+_EOF
+        $execPrefix sed -i --regexp-extended \
+            "s/(<Connector port=)\"8080\"/\1\"${newListenPort}\"/" \
+            $serverXmlPath
+        # check if returns successfully
+        if [[ $? != 0 ]]; then
+            echo [Error]: change listen port error, quitting now
+            exit
+        fi
     fi
+}
+
+installTomcat8() {
     cat << "_EOF"
 ------------------------------------------------------
 INSTALLING TOMCAT 8
 ------------------------------------------------------
 _EOF
-    # run tomcat using newly made user: tomcat
+    # check, if jsvc already compiled, return
+    jsvcPath=$tomcatInstDir/bin/jsvc
+    if [[ -x $jsvcPath ]]; then
+        # copy template server.xml to replace old version
+        # serverXmlPath=${tomcatInstDir}/conf/server.xml
+        if [[ ! -f $serverXmlPath ]]; then
+            echo [Error]: missing $serverXmlPath, please check it
+            exit 255
+        fi
+        # srvXmlTemplate=$mainWd/template/server.xml
+        $execPrefix cp $srvXmlTemplate $serverXmlPath
+
+        # change listen port if not the default value, passed as $1
+        changeListenPort $1
+        return
+    fi
+
+    # run tomcat using newly made user: tomcat:tomcat
     newUser=$tomcatUser
     newGrp=$tomcatGrp
-    # tomcat:tomcat
     # create group if not exist
     egrep "^$newGrp" /etc/group &> /dev/null
     if [[ $? = 0 ]]; then
@@ -202,9 +233,9 @@ _EOF
         $execPrefix useradd -s /bin/false -g $newGrp -d $tomcatInstDir $newUser
     fi
 
-    # begin download issue
-    wgetLink=http://mirror.olnevhost.net/pub/apache/tomcat/tomcat-8/v8.5.24/bin
-    tarName=apache-tomcat-8.5.24.tar.gz
+    # begin download routine
+    wgetLink=http://mirrors.sonic.net/apache/tomcat/tomcat-8/v8.0.49/bin
+    tarName=apache-tomcat-8.0.49.tar.gz
 
     cd $downloadPath
     # check if already has this tar ball.
@@ -240,29 +271,12 @@ _EOF
     $execPrefix chmod g+r conf/*
 
     # change listen port if not the default value, passed as $1
-    if [[ "$1" != "" && "$1" != 8080 ]]; then
-        newListenPort=$1
-        cat << _EOF
-------------------------------------------------------
-CHANGING DEFAULT LISTEN PORT 8080 TO $newListenPort
-------------------------------------------------------
-_EOF
-        serverXmlPath=${tomcatInstDir}/conf/server.xml
-        $execPrefix cp $serverXmlPath ${serverXmlPath}.bak
-        $execPrefix sed -i --regexp-extended \
-             "s/(<Connector port=)\"8080\"/\1\"${newListenPort}\"/" \
-             $serverXmlPath
-    fi
-    # check if returns successfully
-    if [[ $? != 0 ]]; then
-        echo [Error]: change listen port error, quitting now
-        exit
-    fi
+    changeListenPort $1
 
     # make daemon script to start/shutdown Tomcat
     cd $mainWd
     # template script to copy from
-    sptCopyFrom=./template/daemon.sh.template
+    sptCopyFrom=./template/daemon.sh
     # rename this script to
     daeName=daemon.sh
     if [[ ! -f $daeName ]]; then
@@ -323,7 +337,7 @@ makeDynEnv() {
     cat > $dynamicEnvName << _EOF
 #!/bin/bash
 export COMMON_INSTALL_DIR=$commInstdir
-export CTAGS_INSTALL_DIR=${uCtagsInstDir}/bin
+# export CTAGS_INSTALL_DIR=${uCtagsPath%/*}
 export JAVA_HOME=${JAVA_HOME}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
@@ -336,7 +350,7 @@ export OPENGROK_INSTANCE_BASE=${opengrokInstanceBase}
 export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
 export OPENGROK_SRC_ROOT=$opengrokSrcRoot
 # export OPENGROK_WEBAPP_CONTEXT=ROOT
-export OPENGROK_CTAGS=${uCtagsInstDir}/bin/ctags
+export OPENGROK_CTAGS=$uCtagsPath
 _EOF
     # do not parse value of $var
     cat >> $dynamicEnvName << "_EOF"
@@ -484,24 +498,26 @@ _EOF
     retVal=$?
     #just print warning
     if [[ $retVal != 0 ]]; then
-        echo "[Warning]: daemon stop returns value: $retVal"
+        cat << _EOF
+[Warning]: daemon stop returns value: $retVal
+_EOF
+        # loop to kill tomcat living threads if daemon method failed
+        for (( i = 0; i < 2; i++ )); do
+            # root   70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
+            tomcatThreads=`ps aux | grep -i tomcat | grep -i jsvc.exec | tr -s " " \
+                | cut -d " " -f 2`
+            if [[ "$tomcatThreads" != "" ]]; then
+                $execPrefix kill -15 $tomcatThreads
+                if [[ $? != 0 ]]; then
+                    echo [Error]: Tomcat threads stop failed $(echo $1 + 1 | bc) time
+                    sleep 1
+                    continue
+                fi
+            else
+                break
+            fi
+        done
     fi
-    # loop to kill tomcat living threads
-    # for (( i = 0; i < 10; i++ )); do
-    #     # root   70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
-    #     tomcatThreads=`ps aux | grep -i tomcat | grep -i jsvc.exec | tr -s " " \
-    #         | cut -d " " -f 2`
-    #     if [[ "$tomcatThreads" != "" ]]; then
-    #         $execPrefix kill -15 $tomcatThreads
-    #         if [[ $? != 0 ]]; then
-    #             echo [Error]: Tomcat threads stop failed $(echo $1 + 1 | bc) time
-    #             sleep 1
-    #             continue
-    #         fi
-    #     else
-    #         break
-    #     fi
-    # done
     cat << _EOF
 --------------------------------------------------------
 START TOMCAT WEB SERVICE
@@ -513,7 +529,9 @@ _EOF
     retVal=$?
     # just print warning
     if [[ $retVal != 0 ]]; then
-        echo "[Warning]: daemon start returns value: $retVal"
+        cat << _EOF
+[Warning]: daemon start returns value: $retVal
+_EOF
     fi
 }
 

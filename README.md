@@ -1,7 +1,7 @@
 ## CC-OpenGrok
 Goal to deploy OpenGrok under Linux like platform through onekey stroke 
 
-Automatically generating needed env files, no need extra PATH set
+Automatically generating PATH/config files, no need extra var set
 
 Verified on Ubuntu 14.04 LTS | CentOS 6.9
 
@@ -14,12 +14,14 @@ Verified on Ubuntu 14.04 LTS | CentOS 6.9
 $ sh oneKey.sh 
 [NAME]
     sh oneKey.sh -- setup opengrok through one script
-                | shell need root privilege, but
-                | no need run with sudo prefix
+                   | need root privilege but no sudo prefix
 
 [USAGE]
-    sh oneKey.sh [install | help] [Listen-Port]
-    #default Listen-Port 8080 if para was omitted
+    # Default listen-port is 8080 if para was omitted
+    oneKey.sh [install | help] [Listen-Port]
+
+[TIPS]
+    clean up your installation directory before run oneKey.sh
 
   ___  _ __   ___ _ __   __ _ _ __ ___ | | __
  / _ \| '_ \ / _ \ '_ \ / _` | '__/ _ \| |/ /
