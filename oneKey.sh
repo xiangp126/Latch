@@ -43,11 +43,10 @@ usage() {
     cat << _EOF
 [NAME]
     sh $exeName -- setup opengrok through one script
-                | shell need root privilege, but
-                | no need run with sudo prefix
+                   | need root privilege but no sudo prefix
 
 [USAGE]
-    # default Listen-Port is $newListenPort if para was omitted
+    # Default listen-port is $newListenPort if para was omitted
     $exeName [install | help] [Listen-Port]
 
 [TIPS]
@@ -67,7 +66,7 @@ installuCtags() {
     # check if this shell already installed u-ctags
     uCtagsPath=$uCtagsInstDir/bin/ctags
     if [[ -x "$uCtagsPath" ]]; then
-        echo "[Warning]: already has u-ctags installed, omitting this step "
+        echo "[Warning]: already has u-ctags installed"
         return
     fi
     cat << "_EOF"
@@ -80,12 +79,12 @@ _EOF
     cd $downloadPath
     clonedName=ctags
     if [[ -d "$clonedName" ]]; then
-        echo [Warning]: $clonedName/ already exists, omitting this step
+        echo [Warning]: $clonedName/ already exist
     else
         git clone https://github.com/universal-ctags/ctags
         # check if git clone returns successfully
         if [[ $? != 0 ]]; then
-            echo [Error]: git clone returns error, quiting now
+            echo [Error]: git clone error, quiting now
             exit
         fi
     fi
@@ -96,14 +95,14 @@ _EOF
     make -j
     # check if make returns successfully
     if [[ $? != 0 ]]; then
-        echo [Error]: make returns error, quitting now
+        echo [Error]: make error, quitting now
         exit
     fi
 
     $execPrefix make install
     # check if make returns successfully
     if [[ $? != 0 ]]; then
-        echo [Error]: make install returns error, quitting now
+        echo [Error]: make install error, quitting now
         exit
     fi
     cat << _EOF
@@ -117,7 +116,7 @@ _EOF
 installJava8() {
     checkName=$javaInstDir/bin/java
     if [[ -x $checkName ]]; then
-        echo "[Warning]: already has java 8 installed , omitting this step "
+        echo "[Warning]: already has java 8 installed"
         return
     fi
     cat << "_EOF"
@@ -135,7 +134,7 @@ _EOF
     cd $downloadPath
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
-        echo [Warning]: Tar Ball $tarName already exists, omitting wget
+        echo [Warning]: Tar Ball $tarName already exist
     else
         wget --no-cookies \
              --no-check-certificate \
@@ -144,7 +143,7 @@ _EOF
              -O $tarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
-            echo [Error]: wget returns error, quiting now
+            echo [Error]: wget error, quiting now
             exit
         fi
     fi
@@ -156,7 +155,7 @@ _EOF
     fi
     # check if make returns successfully
     if [[ $? != 0 ]]; then
-        echo [Error]: untar java package returns error, quitting now
+        echo [Error]: untar java package error, quitting now
         exit
     fi
     #checkName=$javaInstDir/bin/java
@@ -173,44 +172,10 @@ java path = $javaInstDir/bin/java
 _EOF
 }
 
-writeTomcatConf() {
-    # tomcat start/stop conf name
-    confFile=tomcat.conf
-    TOM_HOME=$tomcatInstDir
-    CATALINA_HOME=$tomcatInstDir
-
-    cd $mainWd
-    cat > "$confFile" << _EOF
-description "Tomcat Server"
-
-  start on runlevel [2345]
-  stop on runlevel [!2345]
-  respawn
-  respawn limit 10 5
-
-  setuid tomcat
-  setgid tomcat
-
-  env JAVA_HOME=$JAVA_HOME
-  env CATALINA_HOME=$TOM_HOME
-
-  # Modify these options as needed
-  env JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
-  env CATALINA_OPTS="-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
-
-  exec $CATALINA_HOME/bin/catalina.sh run
-
-  # cleanup temp directory after stop
-  post-stop script
-    rm -rf $CATALINA_HOME/temp/*
-  end script
-_EOF
-}
-
 installTomcat8() {
     checkName=$tomcatInstDir/bin/jsvc
     if [[ -x $checkName ]]; then
-        echo "[Warning]: already has tomcat 8 installed, omitting this step "
+        echo "[Warning]: already has tomcat 8 installed"
         return
     fi
     cat << "_EOF"
@@ -222,17 +187,17 @@ _EOF
     newUser=$tomcatUser
     newGrp=$tomcatGrp
     # tomcat:tomcat
-    # create group if not exists
+    # create group if not exist
     egrep "^$newGrp" /etc/group &> /dev/null
     if [[ $? = 0 ]]; then
-        echo [Warning]: group $newGrp already exists
+        echo [Warning]: group $newGrp already exist
     else
         $execPrefix groupadd $newUser
     fi
-    # create user if not exists
+    # create user if not exist
     egrep "^$newUser" /etc/passwd &> /dev/null
     if [[ $? = 0 ]]; then
-        echo [Warning]: group $newGrp already exists
+        echo [Warning]: group $newGrp already exist
     else
         $execPrefix useradd -s /bin/false -g $newGrp -d $tomcatInstDir $newUser
     fi
@@ -244,7 +209,7 @@ _EOF
     cd $downloadPath
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
-        echo [Warning]: Tar Ball $tarName already exists, omitting wget
+        echo [Warning]: Tar Ball $tarName already exist
     else
         wget --no-cookies \
              --no-check-certificate \
@@ -253,7 +218,7 @@ _EOF
              -O $tarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
-            echo [Error]: wget returns error, quiting now
+            echo [Error]: wget error, quiting now
             exit
         fi
     fi
@@ -262,7 +227,7 @@ _EOF
         $execPrefix mkdir -p $tomcatInstDir
         $execPrefix tar -zxv -f $tarName --strip-components=1 -C $tomcatInstDir
     fi
-    # check if make returns successfully
+    # check if untar returns successfully
     if [[ $? != 0 ]]; then
         echo [Error]: untar tomcat package error, quitting now
         exit
@@ -274,29 +239,21 @@ _EOF
     $execPrefix chmod 775 conf
     $execPrefix chmod g+r conf/*
 
-    # echo ------------------------------------------------------
-    # echo START TO MAKE TOMCAT CONF FILE
-    # echo ------------------------------------------------------
-    # writeTomcatConf
-    # $execPrefix echo  cp ${mainWd}/tomcat.conf /etc/init/tomcat.conf
-
-    # check if listen-port was passed as $1 argument
-    if [[ "$1" != "" ]]; then
+    # change listen port if not the default value, passed as $1
+    if [[ "$1" != "" && "$1" != 8080 ]]; then
         newListenPort=$1
-    fi
-
-    # do the sed routine only if newListenPort != default port
-    if [[ "$newListenPort" != 8080 ]]; then
-        echo ------------------------------------------------------
-        echo change default listen port 8080 to $newListenPort
+        cat << _EOF
+------------------------------------------------------
+CHANGING DEFAULT LISTEN PORT 8080 TO $newListenPort
+------------------------------------------------------
+_EOF
         serverXmlPath=${tomcatInstDir}/conf/server.xml
         $execPrefix cp $serverXmlPath ${serverXmlPath}.bak
         $execPrefix sed -i --regexp-extended \
              "s/(<Connector port=)\"8080\"/\1\"${newListenPort}\"/" \
              $serverXmlPath
-        echo ------------------------------------------------------
     fi
-    # check if make returns successfully
+    # check if returns successfully
     if [[ $? != 0 ]]; then
         echo [Error]: change listen port error, quitting now
         exit
@@ -304,17 +261,18 @@ _EOF
 
     # make daemon script to start/shutdown Tomcat
     cd $mainWd
-    envName=$dynamicEnvName
-    # sample/template script to copy from
-    smpScripName=./template/daemon.sh.template
-    # copied to name
+    # template script to copy from
+    sptCopyFrom=./template/daemon.sh.template
+    # rename this script to
     daeName=daemon.sh
-    cp $smpScripName $daeName
-    # add source command at top of script daemon.sh
-    sed -i "2a source ${mainWd}/${envName}" $daeName
-    # check if make returns successfully
+    if [[ ! -f $daeName ]]; then
+        cp $sptCopyFrom $daeName
+        # add source command at top of script daemon.sh
+        sed -i "2a source ${mainWd}/${dynamicEnvName}" $daeName
+    fi
+    # check if returns successfully
     if [[ $? != 0 ]]; then
-        echo [Error]: sed returns error, quitting now
+        echo [Error]: make daemon.sh error, quitting now
         exit
     fi
     cat << _EOF
@@ -335,18 +293,18 @@ _EOF
     fi
     $execPrefix chmod -R 777 $untarName
 
-    #go into commons-daemon-1.1.0-native-src
+    # enter into commons-daemon-1.1.0-native-src
     cd $untarName/unix
     sh support/buildconf.sh
     ./configure --with-java=${javaInstDir}
     if [[ $? != 0 ]]; then
-        echo [Error]: ./configure returns error, quitting now
+        echo [Error]: ./configure jsvc error, quitting now
         exit
     fi
     make -j
     # check if make returns successfully
     if [[ $? != 0 ]]; then
-        echo [Error]: make returns error, quitting now
+        echo [Error]: make error, quitting now
         exit
     fi
 
@@ -354,24 +312,15 @@ _EOF
     cd $tomcatInstDir/bin
     $execPrefix chown -R $newUser:$newGrp jsvc
     # $execPrefix rm -rf $untarName
-
-    # cd $mainWd
-    # echo Stop Tomcat Daemon
-    # $execPrefix sh ./daemon.sh stop &> /dev/null
-    # echo Start Tomcat Daemon
-    # $execPrefix sh ./daemon.sh run &> /dev/null &
 }
 
 makeDynEnv() {
-    # enter into dir first
     cd $mainWd
-    envName=dynamic.env
     JAVA_HOME=$javaInstDir
     TOMCAT_HOME=${tomcatInstDir}
     CATALINA_HOME=$TOMCAT_HOME
-
     # parse value of $var
-    cat > $envName << _EOF
+    cat > $dynamicEnvName << _EOF
 #!/bin/bash
 export COMMON_INSTALL_DIR=$commInstdir
 export CTAGS_INSTALL_DIR=${uCtagsInstDir}/bin
@@ -390,13 +339,10 @@ export OPENGROK_SRC_ROOT=$opengrokSrcRoot
 export OPENGROK_CTAGS=${uCtagsInstDir}/bin/ctags
 _EOF
     # do not parse value of $var
-    cat >> $envName << "_EOF"
+    cat >> $dynamicEnvName << "_EOF"
 export PATH=${JAVA_HOME}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
 _EOF
-    chmod +x $envName
-    cd - &> /dev/null
-    # as return value of this func
-    echo $envName
+    chmod +x $dynamicEnvName
 }
 
 # deploy OpenGrok
@@ -413,7 +359,7 @@ _EOF
     cd $downloadPath
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
-        echo [Warning]: Tar Ball $tarName already exists, omitting wget
+        echo [Warning]: Tar Ball $tarName already exist
     else
         wget --no-cookies \
              --no-check-certificate \
@@ -422,7 +368,7 @@ _EOF
              -O $tarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
-            echo [Error]: wget returns error, quiting now
+            echo [Error]: wget error, quiting now
             exit
         fi
     fi
@@ -437,10 +383,9 @@ MAKEING DYNAMIC ENVIRONMENT FILE FOR SOURCE
 _EOF
     # call func makeDynEnv
     makeDynEnv
-    envName=$dynamicEnvName
 
-    # source ./$envName
-    # enter into opengrok dir
+    # enter into opengrok downloaded dir
+    cd $downloadPath
     cd $untarName/bin
     # OpenGrok executable file name is OpenGrok
     ogExecFile=OpenGrok
@@ -452,7 +397,7 @@ _EOF
     # delete already command at first
     # notice double quotation marks
     sed -i '/^source.*env$/d' OpenGrok 2> /dev/null
-    sed -i "2a source ${mainWd}/${envName}" OpenGrok
+    sed -i "2a source ${mainWd}/${dynamicEnvName}" OpenGrok
     $execPrefix ./$ogExecFile deploy
     # [Warning]: OpenGrok can not be well executed in other location.
     # ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok
