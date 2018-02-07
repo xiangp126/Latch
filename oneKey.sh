@@ -44,15 +44,24 @@ usage() {
     exeName=${0##*/}
     cat << _EOF
 [NAME]
-    sh $exeName -- setup opengrok through one script
-                   | need root privilege but no sudo prefix
+    sh $exeName -- setup OpenGrok through one key stroke
 
-[USAGE]
-    # Default listen-port is $newListenPort if para was omitted
-    $exeName [install | help] [Listen-Port]
+[SYNOPSIS]
+    sh $exeName [install | summary | help] [PORT]
+
+[EXAMPLE]
+    sh $exeName [help]
+    sh $exeName install
+    sh $exeName install 8081
+    sh $exeName summary
+
+[DESCRIPTION]
+    install -> install opengrok, need root privilege but no sudo prefix
+    help    -> print help page
+    summary -> print tomcat/opengrok guide and installation info
 
 [TIPS]
-    clean up your installation directory before run $exeName
+    Default listen-port is $newListenPort if [PORT] was omitted
 
 _EOF
     logo
@@ -63,6 +72,8 @@ installuCtags() {
     checkCmd=`ctags --version | grep -i universal 2> /dev/null`
     if [[ $checkCmd != "" ]]; then
         uCtagsPath=`which ctags`
+        uCtagsBinDir=${uCtagsPath%/*}
+        uCtagsInstDir=${uCtagsBinDir%/*}
         return
     fi
     # check if this shell already installed u-ctags
@@ -76,8 +87,6 @@ installuCtags() {
 INSTALLING UNIVERSAL CTAGS
 ------------------------------------------------------
 _EOF
-    CTAGS_HOME=$uCtagsInstDir
-
     cd $downloadPath
     clonedName=ctags
     if [[ -d "$clonedName" ]]; then
@@ -234,8 +243,12 @@ _EOF
     fi
 
     # begin download routine
-    wgetLink=http://mirrors.sonic.net/apache/tomcat/tomcat-8/v8.0.49/bin
-    tarName=apache-tomcat-8.0.49.tar.gz
+    wgetLink=http://www-eu.apache.org/dist/tomcat/tomcat-8/v8.5.27/bin
+    tarName=apache-tomcat-8.5.27.tar.gz
+    # wgetLink=https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.5/bin
+    # tarName=apache-tomcat-8.5.5.tar.gz
+    # wgetLink=http://mirrors.sonic.net/apache/tomcat/tomcat-8/v8.0.49/bin
+    # tarName=apache-tomcat-8.0.49.tar.gz
 
     cd $downloadPath
     # check if already has this tar ball.
@@ -296,36 +309,44 @@ START TO COMPILING JSVC
 _EOF
     $execPrefix chmod 755 $tomcatInstDir/bin
     cd $tomcatInstDir/bin
-    tarName=commons-daemon-native.tar.gz
-    untarName=commons-daemon-1.1.0-native-src
-    if [[ ! -f $tarName ]]; then
-        echo [Error]: $tarName not found, wrong tomcat package downloaded
+    jsvcTarName=commons-daemon-native.tar.gz
+    jsvcUntarName=commons-daemon-1.1.0-native-src
+    # jsvcUntarName=commons-daemon-1.0.15-native-src
+    if [[ ! -f $jsvcTarName ]]; then
+        echo [Error]: $jsvcTarName not found, wrong tomcat package downloaded
         exit
     fi
-    if [[ ! -d $untarName ]]; then
-        $execPrefix tar -zxv -f $tarName
+    if [[ ! -d $jsvcUntarName ]]; then
+        $execPrefix tar -zxv -f $jsvcTarName
     fi
-    $execPrefix chmod -R 777 $untarName
+    $execPrefix chmod -R 777 $jsvcUntarName
 
     # enter into commons-daemon-1.1.0-native-src
-    cd $untarName/unix
+    cd $jsvcUntarName/unix
     sh support/buildconf.sh
     ./configure --with-java=${javaInstDir}
     if [[ $? != 0 ]]; then
         echo [Error]: ./configure jsvc error, quitting now
-        exit
+        exit 255
     fi
     make -j
     # check if make returns successfully
     if [[ $? != 0 ]]; then
         echo [Error]: make error, quitting now
-        exit
+        exit 255
     fi
 
     $execPrefix cp jsvc ${tomcatInstDir}/bin
+    # jsvcPath=$tomcatInstDir/bin/jsvc
+    ls -l $jsvcPath
+    if [[ $? != 0 ]]; then
+        echo [Error]: check jsvc path error, quitting now
+        exit
+    fi
+    # change owner of jsvc
     cd $tomcatInstDir/bin
     $execPrefix chown -R $newUser:$newGrp jsvc
-    # $execPrefix rm -rf $untarName
+    # $execPrefix rm -rf $jsvcUntarName
 }
 
 makeDynEnv() {
@@ -337,7 +358,7 @@ makeDynEnv() {
     cat > $dynamicEnvName << _EOF
 #!/bin/bash
 export COMMON_INSTALL_DIR=$commInstdir
-# export CTAGS_INSTALL_DIR=${uCtagsPath%/*}
+export UCTAGS_INSTALL_DIR=$uCtagsInstDir
 export JAVA_HOME=${JAVA_HOME}
 export JRE_HOME=${JAVA_HOME}/jre
 export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
@@ -428,9 +449,9 @@ installSummary() {
     cat > $summaryTxt << _EOF
 TOMCAT STARTED SUCCESSFULLY
 ------------------------------------------------------
-universal ctags path = ${uCtagsInstDir}/bin/ctags
-java path = $javaInstDir/bin/java
-jsvc path = $tomcatInstDir/bin/jsvc
+universal ctags path = $uCtagsPath
+java path = $javaPath
+jsvc path = $jsvcPath
 java home = $javaInstDir
 tomcat home = $tomcatInstDir
 opengrok instance base = $opengrokInstanceBase
@@ -444,7 +465,7 @@ _EOF
 printHelpPage() {
     cat << _EOF
 -------------------------------------------------
-FOR TOMCAT 8 HELP
+FOR TOMCAT 8 GUIDE
 -------------------------------------------------
 -- Under $mainWd
 # start tomcat
@@ -455,13 +476,13 @@ sudo ./daemon.sh run &> /dev/null &
 # stop tomcat
 sudo ./daemon.sh stop
 -------------------------------------------------
-FOR OPENGROK HELP
+FOR OPENGROK GUIDE
 -------------------------------------------------
 -- Under ./downloads/opengrok-1.1-rc17/bin
 # deploy OpenGrok
 sudo ./OpenGrok deploy
 
-# make soft link of source to SRC_ROOT
+# if make soft link of source to SRC_ROOT
 # care for Permission of SRC_ROOT for user: $tomcatUser
 cd $opengrokSrcRoot
 sudo ln -s /usr/local/src/* .
@@ -552,7 +573,7 @@ case $1 in
         install $2
         ;;
 
-    "help")
+    "summary")
         set +x
         printHelpPage
         ;;
