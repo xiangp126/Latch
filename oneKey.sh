@@ -346,7 +346,8 @@ _EOF
     # change owner of jsvc
     cd $tomcatInstDir/bin
     $execPrefix chown -R $newUser:$newGrp jsvc
-    # $execPrefix rm -rf $jsvcUntarName
+    # remove jsvc build dir
+    $execPrefix rm -rf $jsvcUntarName
 }
 
 makeDynEnv() {
