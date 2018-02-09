@@ -245,10 +245,8 @@ _EOF
     # begin download routine
     wgetLink=http://www-eu.apache.org/dist/tomcat/tomcat-8/v8.5.27/bin
     tarName=apache-tomcat-8.5.27.tar.gz
-    # wgetLink=https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.5/bin
-    # tarName=apache-tomcat-8.5.5.tar.gz
-    # wgetLink=http://mirrors.sonic.net/apache/tomcat/tomcat-8/v8.0.49/bin
-    # tarName=apache-tomcat-8.0.49.tar.gz
+    # baidu pan wget link, for backup
+    # https://pan.baidu.com/s/1dTDjtk
 
     cd $downloadPath
     # check if already has this tar ball.
