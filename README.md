@@ -4,11 +4,10 @@
 - Automatically generating PATH/config files, no need extra var set
 
 - Verified on Ubuntu 14.04 LTS | CentOS 6.9
-
-* universal ctags
-* java   >= 1.8
-* tomcat >= 8
-* OpenGrok latest version
+    - universal ctags
+    - java   >= 1.8
+    - tomcat >= 8
+    - OpenGrok latest version
 
 ```bash
 $ sh oneKey.sh
