@@ -1,9 +1,9 @@
 ## CC-OpenGrok
-Goal to deploy OpenGrok under Linux like platform through onekey stroke 
+- Goal to deploy OpenGrok under Linux like platform through 'onekey' stroke
 
-Automatically generating PATH/config files, no need extra var set
+- Automatically generating PATH/config files, no need extra var set
 
-Verified on Ubuntu 14.04 LTS | CentOS 6.9
+- Verified on Ubuntu 14.04 LTS | CentOS 6.9
 
 * universal ctags
 * java   >= 1.8
@@ -11,7 +11,7 @@ Verified on Ubuntu 14.04 LTS | CentOS 6.9
 * OpenGrok latest version
 
 ```bash
-$ sh oneKey.sh 
+$ sh oneKey.sh
 [NAME]
     sh oneKey.sh -- setup OpenGrok through one key stroke
 
