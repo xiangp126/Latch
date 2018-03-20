@@ -1,11 +1,10 @@
-## CC-OpenGrok
-- Goal to deploy OpenGrok by 'onekey' stroke
+- Thanks to the development of OpenGrok
+
+- This project aims to deploy OpenGrok by 'onekey' stroke
 
 - Automatically generating PATH/config files, no need extra var set
 
-- Crossing Linux platforms, verified on
-    - Ubuntu 14.04 LTS | CentOS 6.9
-    - yet not tested on Mac
+- Verified on Ubuntu 14.04 LTS | CentOS 6.9
 
 - Will install
     - universal ctags
@@ -13,6 +12,7 @@
     - tomcat >= 8
     - OpenGrok latest version
 
+## Quick Start
 ```bash
 $ sh oneKey.sh
 [NAME]
@@ -40,8 +40,12 @@ $ sh oneKey.sh
 | (_) | |_) |  __/ | | | (_| | | | (_) |   <
  \___/| .__/ \___|_| |_|\__, |_|  \___/|_|\_\
       |_|               |___/
-
 ```
+```bash
+$ sh oneKey.sh install
+```
+
+## Brief Usage
 ```bash
 $ sh oneKey.sh summary
 -------------------------------------------------
@@ -90,9 +94,6 @@ opengrok instance base = /opt/opengrok
 opengrok source root = /opt/o-source
 http://127.0.0.1:8080/source
 ------------------------------------------------------
-```
-```bash
-$ sh oneKey.sh install
 ```
 
 ## Reference
