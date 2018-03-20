@@ -1,12 +1,12 @@
-- Thanks to the development of OpenGrok
+- This project aims to deploy OpenGrok on Linux server by 'onekey' stroke
 
-- This project aims to deploy OpenGrok by 'onekey' stroke
+- Automatically generating PATH/config files, need not set extra var
 
-- Automatically generating PATH/config files, no need extra var set
+- Server user is jsvc, not root
 
-- Verified on Ubuntu 14.04 LTS | CentOS 6.9
+- Has checked on on Ubuntu 14.04 LTS | CentOS 6.9
 
-- Will install
+- May install
     - universal ctags
     - java   >= 1.8
     - tomcat >= 8
