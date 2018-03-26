@@ -2,6 +2,8 @@
 
 - Automatically generating PATH/config files, need not set extra var
 
+- Resolve tough issue: use git-lfs store packages originally transient
+
 - Server user is jsvc, not root
 
 - Has checked on on Ubuntu 14.04 LTS | CentOS 6.9

@@ -28,6 +28,8 @@ tomcatGrp=tomcat8
 summaryTxt=INSTALLATION.TXT
 # store all downloaded packages here
 downloadPath=$mainWd/downloads
+# store JDK/Tomcat packages
+pktPath=$mainWd/package
 
 logo() {
     cat << "_EOF"
@@ -135,29 +137,14 @@ _EOF
         echo "[Warning]: already has java 8 installed"
         return
     fi
-    # instruction to install java8
+    # tackle to install java8
     JAVA_HOME=$javaInstDir
-    wgetLink=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808
+    # wgetLink=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808
     tarName=jdk-8u161-linux-x64.tar.gz
     # untarName=jdk1.8.0_161
 
+    cd $pktPath
     # rename download package
-    cd $downloadPath
-    # check if already has this tar ball.
-    if [[ -f $tarName ]]; then
-        echo [Warning]: Tar Ball $tarName already exist
-    else
-        wget --no-cookies \
-             --no-check-certificate \
-             --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-             "${wgetLink}/${tarName}" \
-             -O $tarName
-        # check if wget returns successfully
-        if [[ $? != 0 ]]; then
-            echo [Error]: wget error, quiting now
-            exit
-        fi
-    fi
     if [[ ! -d $javaInstDir ]]; then
         $execPrefix mkdir -p $javaInstDir
         $execPrefix tar -zxv -f $tarName --strip-components=1 -C $javaInstDir
@@ -167,16 +154,16 @@ _EOF
             exit
         fi
     fi
-    # javaPath=$javaInstDir/bin/java
+    # javaPath=$javaInstDir/bin/java already defined at top
     if [[ ! -x $javaPath ]]; then
         echo [Error]: java install error, quitting now
         exit
     fi
-    $($javaPath -version)
     cat << _EOF
 ------------------------------------------------------
 java package install path = $javaInstDir
 java path = $javaPath
+$($javaPath -version)
 ------------------------------------------------------
 _EOF
 }
@@ -243,27 +230,10 @@ _EOF
     fi
 
     # begin download routine
-    wgetLink=http://www-eu.apache.org/dist/tomcat/tomcat-8/v8.5.27/bin
+    # wgetLink=http://www-eu.apache.org/dist/tomcat/tomcat-8/v8.5.27/bin
     tarName=apache-tomcat-8.5.27.tar.gz
-    # baidu pan wget link, for backup
-    # https://pan.baidu.com/s/1dTDjtk
 
-    cd $downloadPath
-    # check if already has this tar ball.
-    if [[ -f $tarName ]]; then
-        echo [Warning]: Tar Ball $tarName already exist
-    else
-        wget --no-cookies \
-             --no-check-certificate \
-             --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-             "${wgetLink}/${tarName}" \
-             -O $tarName
-        # check if wget returns successfully
-        if [[ $? != 0 ]]; then
-            echo [Error]: wget error, quiting now
-            exit
-        fi
-    fi
+    cd $pktPath
     # untar into /opt/tomcat and strip one level directory
     if [[ ! -d $tomcatInstDir ]]; then
         $execPrefix mkdir -p $tomcatInstDir
@@ -386,9 +356,9 @@ installOpenGrok() {
 INSTALLING OPENGROK
 ------------------------------------------------------
 _EOF
-    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc17
-    tarName=opengrok-1.1-rc17.tar.gz
-    untarName=opengrok-1.1-rc17
+    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc21
+    tarName=opengrok-1.1-rc21.tar.gz
+    untarName=opengrok-1.1-rc21
 
     cd $downloadPath
     # check if already has this tar ball.
