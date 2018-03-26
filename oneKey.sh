@@ -132,16 +132,16 @@ installGitLfs() {
 INSTALLING GIT-LFS
 ------------------------------------------------------
 _EOF
-    gitLfsInstDir=/usr/local
-    gitLfsPath=$gitLfsInstDir/bin/git-lfs
-    if [[ -x "$gitLfsPath" ]]; then
+    gitLfsPath=`which git-lfs 2> /dev/null`
+    if [[ "$gitLfsPath" != "" ]]; then
         echo [Warning]: Already has git-lfs installed, skip
         return
     fi
+
+    gitLfsInstDir=/usr/local
     wgetLink=https://github.com/git-lfs/git-lfs/releases/download/v2.4.0
     tarName=git-lfs-linux-amd64-2.4.0.tar.gz
     untarName=git-lfs-2.4.0
-
     # tackle install git-lfs
     cd $downloadPath
     # check if already has this tar ball.
@@ -165,7 +165,10 @@ _EOF
     cd $untarName
     $execPrefix cp -f git-lfs $gitLfsInstDir/bin
 
+    gitLfsPath=$gitLfsInstDir/bin/git-lfs
     # download real packages before install JDK/Tomcat
+    # rm -rf .git/hooks
+    git lfs install
     git lfs pull
 
     cat << _EOF
