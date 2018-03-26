@@ -29,7 +29,7 @@ summaryTxt=INSTALLATION.TXT
 # store all downloaded packages here
 downloadPath=$mainWd/downloads
 # store JDK/Tomcat packages
-pktPath=$mainWd/package
+pktPath=$mainWd/packages
 
 logo() {
     cat << "_EOF"
@@ -123,6 +123,55 @@ _EOF
 ctags path = $uCtagsPath
 ------------------------------------------------------
 $($uCtagsPath --version)
+_EOF
+}
+
+installGitLfs() {
+    cat << "_EOF"
+------------------------------------------------------
+INSTALLING GIT-LFS
+------------------------------------------------------
+_EOF
+    gitLfsInstDir=/usr/local
+    gitLfsPath=$gitLfsInstDir/bin/git-lfs
+    if [[ -x "$gitLfsPath" ]]; then
+        echo [Warning]: Already has git-lfs installed, skip
+        return
+    fi
+    wgetLink=https://github.com/git-lfs/git-lfs/releases/download/v2.4.0
+    tarName=git-lfs-linux-amd64-2.4.0.tar.gz
+    untarName=git-lfs-2.4.0
+
+    # tackle install git-lfs
+    cd $downloadPath
+    # check if already has this tar ball.
+    if [[ -f $tarName ]]; then
+        echo [Warning]: Tar Ball $tarName already exist
+    else
+        wget --no-cookies \
+             --no-check-certificate \
+             --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+             "${wgetLink}/${tarName}" \
+             -O $tarName
+        # check if wget returns successfully
+        if [[ $? != 0 ]]; then
+            echo [Error]: wget error, quiting now
+            exit
+        fi
+    fi
+    if [[ ! -d $untarName ]]; then
+        tar -zxv -f $tarName
+    fi
+    cd $untarName
+    $execPrefix cp -f git-lfs $gitLfsInstDir/bin
+
+    # download real packages before install JDK/Tomcat
+    git lfs pull
+
+    cat << _EOF
+------------------------------------------------------
+git-lfs install path = $gitLfsPath
+------------------------------------------------------
 _EOF
 }
 
@@ -417,8 +466,9 @@ _EOF
 installSummary() {
     cat > $summaryTxt << _EOF
 TOMCAT STARTED SUCCESSFULLY
-------------------------------------------------------
+---------------------------------------- SUMMARY ----
 universal ctags path = $uCtagsPath
+git-lfs path = $gitLfsPath
 java path = $javaPath
 jsvc path = $jsvcPath
 java home = $javaInstDir
@@ -527,6 +577,7 @@ _EOF
 
 install() {
     mkdir -p $downloadPath
+    installGitLfs
     installuCtags
     installJava8
     # $1 passed as new listen port
