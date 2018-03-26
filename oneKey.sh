@@ -135,39 +135,39 @@ _EOF
     gitLfsPath=`which git-lfs 2> /dev/null`
     if [[ "$gitLfsPath" != "" ]]; then
         echo [Warning]: Already has git-lfs installed, skip
-        return
-    fi
-
-    gitLfsInstDir=/usr/local
-    wgetLink=https://github.com/git-lfs/git-lfs/releases/download/v2.4.0
-    tarName=git-lfs-linux-amd64-2.4.0.tar.gz
-    untarName=git-lfs-2.4.0
-    # tackle install git-lfs
-    cd $downloadPath
-    # check if already has this tar ball.
-    if [[ -f $tarName ]]; then
-        echo [Warning]: Tar Ball $tarName already exist
     else
-        wget --no-cookies \
-             --no-check-certificate \
-             --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-             "${wgetLink}/${tarName}" \
-             -O $tarName
-        # check if wget returns successfully
-        if [[ $? != 0 ]]; then
-            echo [Error]: wget error, quiting now
-            exit
+        gitLfsInstDir=/usr/local
+        wgetLink=https://github.com/git-lfs/git-lfs/releases/download/v2.4.0
+        tarName=git-lfs-linux-amd64-2.4.0.tar.gz
+        untarName=git-lfs-2.4.0
+        # tackle install git-lfs
+        cd $downloadPath
+        # check if already has this tar ball.
+        if [[ -f $tarName ]]; then
+            echo [Warning]: Tar Ball $tarName already exist
+        else
+            wget --no-cookies \
+                --no-check-certificate \
+                --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+                "${wgetLink}/${tarName}" \
+                -O $tarName
+            # check if wget returns successfully
+            if [[ $? != 0 ]]; then
+                echo [Error]: wget error, quiting now
+                exit
+            fi
         fi
-    fi
-    if [[ ! -d $untarName ]]; then
-        tar -zxv -f $tarName
-    fi
-    cd $untarName
-    $execPrefix cp -f git-lfs $gitLfsInstDir/bin
+        if [[ ! -d $untarName ]]; then
+            tar -zxv -f $tarName
+        fi
+        cd $untarName
+        $execPrefix cp -f git-lfs $gitLfsInstDir/bin
 
-    gitLfsPath=$gitLfsInstDir/bin/git-lfs
-    # download real packages before install JDK/Tomcat
-    # rm -rf .git/hooks
+        gitLfsPath=$gitLfsInstDir/bin/git-lfs
+        # download real packages before install JDK/Tomcat
+        # rm -rf .git/hooks
+    fi
+    # it's git-lfs here
     git lfs install
     git lfs pull
 
@@ -186,7 +186,7 @@ INSTALLING JAVA 8
 _EOF
     javaPath=$javaInstDir/bin/java
     if [[ -x $javaPath ]]; then
-        echo "[Warning]: already has java 8 installed"
+        echo "[Warning]: already has java 8 installed, skip"
         return
     fi
     # tackle to install java8
@@ -195,16 +195,14 @@ _EOF
     tarName=jdk-8u161-linux-x64.tar.gz
     # untarName=jdk1.8.0_161
 
+    $execPrefix rm -rf $javaInstDir
+    $execPrefix mkdir -p $javaInstDir
     cd $pktPath
-    # rename download package
-    if [[ ! -d $javaInstDir ]]; then
-        $execPrefix mkdir -p $javaInstDir
-        $execPrefix tar -zxv -f $tarName --strip-components=1 -C $javaInstDir
-        # check if returns successfully
-        if [[ $? != 0 ]]; then
-            echo [Error]: untar java package error, quitting now
-            exit
-        fi
+    $execPrefix tar -zxv -f $tarName --strip-components=1 -C $javaInstDir
+    # check if returns successfully
+    if [[ $? != 0 ]]; then
+        echo [Error]: untar java package error, quitting now
+        exit
     fi
     # javaPath=$javaInstDir/bin/java already defined at top
     if [[ ! -x $javaPath ]]; then
@@ -415,12 +413,12 @@ _EOF
     tarName=opengrok-1.1-rc21.tar.gz
     untarName=opengrok-1.1-rc21
 
-    openGrokBinPath=$downloadPath/$untarName/bin/OpenGrok
-    if [[ -x $openGrokBinPath ]]; then
-        echo [Warning]: OpenGrok already installed, skip
-        return
-    fi
-
+#    openGrokBinPath=$downloadPath/$untarName/bin/OpenGrok
+#    if [[ -x $openGrokBinPath ]]; then
+#        echo [Warning]: OpenGrok already installed, skip
+#        return
+#    fi
+#
     cd $downloadPath
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
