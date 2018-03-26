@@ -1,9 +1,12 @@
 Problem: wget link of JDK/Tomcat always expire on Oracle official website
+
 So store them on repository itself
 
-------------------------------------- git-lfs
+## git-lfs
+```bash
 git lfs - large file storage
 brew install git-lfs
+```
 ```bash
 git lfs install
 git lfs track "*.tar.gz"
