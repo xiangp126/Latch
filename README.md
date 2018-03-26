@@ -1,18 +1,15 @@
 - This project aims to deploy OpenGrok on Linux server by 'onekey' stroke
-
-- Automatically generating PATH/config files, need not set extra var
-
-- Resolve tough issue: use git-lfs store packages originally transient
-
-- Server user is jsvc, not root
-
+    - automatically generating PATH/config files, need not set extra var
+    - use git-lfs store large packages originally transient on official website
+    - Server user is jsvc, not root
 - Has checked on on Ubuntu 14.04 LTS | CentOS 6.9
-
 - May install
     - universal ctags
     - java   >= 1.8
     - tomcat >= 8
     - OpenGrok latest version
+
+Current version: 2.6
 
 ## Quick Start
 ```bash
@@ -86,8 +83,9 @@ sudo ./daemon.sh stop
 sudo ./daemon.sh start
 ------------------------------------------------------
 TOMCAT STARTED SUCCESSFULLY
-------------------------------------------------------
+---------------------------------------- SUMMARY ----
 universal ctags path = /usr/local/bin/ctags
+git-lfs path = /usr/local/bin/git-lfs
 java path = /opt/java8/bin/java
 jsvc path = /opt/tomcat8/bin/jsvc
 java home = /opt/java8

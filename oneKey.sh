@@ -211,6 +211,9 @@ _EOF
         echo [Error]: java install error, quitting now
         exit
     fi
+    # change owner of java install directory to root:root
+    $execPrefix chown -R root:root $javaInstDir
+
     cat << _EOF
 ------------------------------------------------------
 java package install path = $javaInstDir
@@ -411,6 +414,12 @@ _EOF
     wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc21
     tarName=opengrok-1.1-rc21.tar.gz
     untarName=opengrok-1.1-rc21
+
+    openGrokBinPath=$downloadPath/$untarName/bin/OpenGrok
+    if [[ -x $openGrokBinPath ]]; then
+        echo [Warning]: OpenGrok already installed, skip
+        return
+    fi
 
     cd $downloadPath
     # check if already has this tar ball.
