@@ -1,7 +1,7 @@
 - This project aims to deploy OpenGrok on Linux server by 'onekey' stroke
     - automatically generating PATH/config files, need not set extra var
-    - use git-lfs store large packages originally transient on official website
-    - Server user is jsvc, not root
+    - [use split/cat to store large packages originally transient on Oracle official website](https://github.com/xiangp126/split-and-cat)
+    - Server user is jsvc, more safe than jsut use root
 - Has checked on on Ubuntu 14.04 LTS | CentOS 6.9
 - May install
     - universal ctags

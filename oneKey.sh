@@ -126,56 +126,27 @@ $($uCtagsPath --version)
 _EOF
 }
 
-installGitLfs() {
+reAssembleJDK() {
     cat << "_EOF"
 ------------------------------------------------------
-INSTALLING GIT-LFS
+REASSEMBLE JDK USING LINUX SPLIT/CAT
 ------------------------------------------------------
 _EOF
-    gitLfsPath=`which git-lfs 2> /dev/null`
-    if [[ "$gitLfsPath" != "" ]]; then
-        echo [Warning]: Already has git-lfs installed, skip
-    else
-        gitLfsInstDir=/usr/local
-        wgetLink=https://github.com/git-lfs/git-lfs/releases/download/v2.4.0
-        tarName=git-lfs-linux-amd64-2.4.0.tar.gz
-        untarName=git-lfs-2.4.0
-        # tackle install git-lfs
-        cd $downloadPath
-        # check if already has this tar ball.
-        if [[ -f $tarName ]]; then
-            echo [Warning]: Tar Ball $tarName already exist
-        else
-            wget --no-cookies \
-                --no-check-certificate \
-                --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-                "${wgetLink}/${tarName}" \
-                -O $tarName
-            # check if wget returns successfully
-            if [[ $? != 0 ]]; then
-                echo [Error]: wget error, quiting now
-                exit
-            fi
-        fi
-        if [[ ! -d $untarName ]]; then
-            tar -zxv -f $tarName
-        fi
-        cd $untarName
-        $execPrefix cp -f git-lfs $gitLfsInstDir/bin
+    jdkSliceDir=$mainWd/packages/jdk-splits
+    slicePrefix=jdk-8u161-linux-x64
+    jdkTarName=${slicePrefix}.tar.gz
 
-        gitLfsPath=$gitLfsInstDir/bin/git-lfs
-        # download real packages before install JDK/Tomcat
-        # rm -rf .git/hooks
+    cd $pktPath
+    if [[ -d "$jdkTarName" ]]; then
+        echo [Warning]: Already has JDK re-assembled, skip
+        return
     fi
-    # it's git-lfs here
-    git lfs install
-    git lfs pull
-
-    cat << _EOF
-------------------------------------------------------
-git-lfs install path = $gitLfsPath
-------------------------------------------------------
-_EOF
+    # check if re-assemble successfully
+    cat $jdkSliceDir/${slicePrefix}a* > $jdkTarName
+    if [[ $? != 0 ]]; then
+        echo [Error]: cat JDK tar.gz error, quiting now
+        exit
+    fi
 }
 
 installJava8() {
@@ -478,7 +449,6 @@ installSummary() {
 TOMCAT STARTED SUCCESSFULLY
 ---------------------------------------- SUMMARY ----
 universal ctags path = $uCtagsPath
-git-lfs path = $gitLfsPath
 java path = $javaPath
 jsvc path = $jsvcPath
 java home = $javaInstDir
@@ -587,7 +557,7 @@ _EOF
 
 install() {
     mkdir -p $downloadPath
-    installGitLfs
+    reAssembleJDK
     installuCtags
     installJava8
     # $1 passed as new listen port
