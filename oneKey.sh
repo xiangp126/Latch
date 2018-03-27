@@ -103,6 +103,8 @@ _EOF
     fi
 
     cd $clonedName
+    # pull the latest code
+    git pull
     ./autogen.sh
     ./configure --prefix=$uCtagsInstDir
     make -j
@@ -137,7 +139,7 @@ _EOF
     jdkTarName=${slicePrefix}.tar.gz
 
     cd $pktPath
-    if [[ -d "$jdkTarName" ]]; then
+    if [[ -f "$jdkTarName" ]]; then
         echo [Warning]: Already has JDK re-assembled, skip
         return
     fi
@@ -147,6 +149,12 @@ _EOF
         echo [Error]: cat JDK tar.gz error, quiting now
         exit
     fi
+    cat << _EOF
+------------------------------------------------------
+SHASUM CHECKSUM OF $jdkTarName
+$(shasum -a 1 $jdkTarName)
+------------------------------------------------------
+_EOF
 }
 
 installJava8() {

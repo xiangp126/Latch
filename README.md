@@ -2,12 +2,13 @@
     - automatically generating PATH/config files, need not set extra var
     - [use split/cat to store large packages originally transient on Oracle official website](https://github.com/xiangp126/split-and-cat)
     - Server user is jsvc, more safe than jsut use root
+- Imcremental install supported
 - Has checked on on Ubuntu 14.04 LTS | CentOS 6.9
 - May install
-    - universal ctags
-    - java   >= 1.8
-    - tomcat >= 8
-    - OpenGrok latest version(1.1-rc21)
+    - universal ctags latest
+    - java 		v(8u161)
+    - tomcat 	v(8.5.27)
+    - OpenGrok  v(1.1-rc21)
 
 Current released version: 2.7
 
