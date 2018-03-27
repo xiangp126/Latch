@@ -7,9 +7,9 @@
     - universal ctags
     - java   >= 1.8
     - tomcat >= 8
-    - OpenGrok latest version
+    - OpenGrok latest version(1.1-rc21)
 
-Current released version: 2.6
+Current released version: 2.7
 
 ## Quick Start
 ```bash
