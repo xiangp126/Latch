@@ -149,12 +149,22 @@ _EOF
         echo [Error]: cat JDK tar.gz error, quiting now
         exit
     fi
-    cat << _EOF
+    cat << "_EOF"
 ------------------------------------------------------
-SHASUM CHECKSUM OF $jdkTarName
-$(shasum -a 1 $jdkTarName)
+CHECKING THE SHA1 SUM OF JDK
 ------------------------------------------------------
 _EOF
+    checkSumPath=../template/jdk.checksum
+    if [[ ! -f ${checkSumPath} ]]; then
+        echo [Error]: missing jdk checksum file, default match
+        return
+    fi
+    ret=$(shasum --check $checkSumPath)
+    checkRet=$(echo $ret | grep -i ok 2> /dev/null)
+    if [[ "$checkRet" == "" ]]; then
+        echo [FatalError]: jdk checksum failed
+        exit 255
+    fi
 }
 
 installJava8() {

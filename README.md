@@ -1,4 +1,4 @@
-- This project aims to deploy OpenGrok on Linux server by 'onekey' stroke
+- This project aims to deploy OpenGrok on Linux server by just single command
     - automatically generating PATH/config files, need not set extra var
     - [use split/cat to store large packages originally transient on Oracle official website](https://github.com/xiangp126/split-and-cat)
     - server user is jsvc, more safe than jsut use root
@@ -98,6 +98,5 @@ http://127.0.0.1:8080/source
 ```
 
 ## Reference
-[UBUNTU INSTALL TOMCAT-8 - DIGITAL OCEAN](https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-on-ubuntu-14-04)
-
-[CENTOS 6 UPGRADE TO KERNEL 4.4, FIXING JAVA FATAL ERROR](https://www.jianshu.com/p/25d8ecc75846)
+- [UBUNTU INSTALL TOMCAT-8 - DIGITAL OCEAN](https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-on-ubuntu-14-04)
+- [CENTOS 6 UPGRADE TO KERNEL 4.4, FIXING JAVA FATAL ERROR](https://www.jianshu.com/p/25d8ecc75846)
