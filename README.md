@@ -97,6 +97,5 @@ http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```
 
-## Reference
-- [UBUNTU INSTALL TOMCAT-8 - DIGITAL OCEAN](https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-on-ubuntu-14-04)
-- [CENTOS 6 UPGRADE TO KERNEL 4.4, FIXING JAVA FATAL ERROR](https://www.jianshu.com/p/25d8ecc75846)
+## License
+[MIT](https://github.com/xiangp126/let-opengrok/blob/master/LICENSE.txt)
