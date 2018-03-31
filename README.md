@@ -12,6 +12,8 @@
 
 Current released version: 2.7
 
+![](https://github.com/xiangp126/let-opengrok/blob/master/gif/guide.gif)
+
 ## Quick Start
 ```bash
 $ sh oneKey.sh
@@ -98,4 +100,4 @@ http://127.0.0.1:8080/source
 ```
 
 ## License
-[MIT](https://github.com/xiangp126/let-opengrok/blob/master/LICENSE.txt)
+The [MIT](https://github.com/xiangp126/let-opengrok/blob/master/LICENSE.txt) License (MIT)
