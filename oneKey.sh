@@ -154,6 +154,10 @@ _EOF
 CHECKING THE SHA1 SUM OF JDK
 ------------------------------------------------------
 _EOF
+    shasumPath=`which shasum 2> /dev/null`
+    if [[ $shasumPath == "" ]]; then
+        return
+    fi
     checkSumPath=../template/jdk.checksum
     if [[ ! -f ${checkSumPath} ]]; then
         echo [Error]: missing jdk checksum file, default match
