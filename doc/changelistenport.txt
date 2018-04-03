@@ -1,5 +1,4 @@
-# GUIDE TO CHANGE LISTEN PORT ...
+----- GUIDE TO CHANGE LISTEN PORT
 sudo sed -i 's/Ori-Listen-Port/New-Listen-Port/' server.xmv-Path
 sudo ./daemon.sh stop
 sudo ./daemon.sh start
-
