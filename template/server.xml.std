@@ -129,10 +129,6 @@
         <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
         -->
 
-        <!-- so you can visit http://ip:port directly for OpenGrok,
-             rather than http://ip:port/source -->
-        <Context path="" docBase="source" debug="0" reloadable="true" crossContext="true"/>
-
         <!-- Access log processes all example.
              Documentation at: /docs/config/valve.html
              Note: The pattern used is equivalent to using pattern="common" -->

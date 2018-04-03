@@ -20,7 +20,6 @@ srvXmlTemplate=$mainWd/template/server.xml
 dynamicEnvName=dynamic.env
 opengrokInstanceBase=/opt/opengrok
 opengrokSrcRoot=${commInstdir}/o-source
-OPENGROKPATH=""
 # new user/group to run tomcat
 tomcatUser=tomcat8
 tomcatGrp=tomcat8
@@ -365,6 +364,11 @@ _EOF
 }
 
 makeDynEnv() {
+    cat << _EOF
+------------------------------------------------------
+MAKEING DYNAMIC ENVIRONMENT FILE FOR SOURCE
+------------------------------------------------------
+_EOF
     cd $mainWd
     JAVA_HOME=$javaInstDir
     TOMCAT_HOME=${tomcatInstDir}
@@ -406,22 +410,25 @@ _EOF
     tarName=opengrok-1.1-rc21.tar.gz
     untarName=opengrok-1.1-rc21
 
-#    openGrokBinPath=$downloadPath/$untarName/bin/OpenGrok
-#    if [[ -x $openGrokBinPath ]]; then
-#        echo [Warning]: OpenGrok already installed, skip
-#        return
-#    fi
-#
+    sourceWarPath=$tomcatInstDir/webapps/source.war
+    # OpenGrok executable file name is OpenGrok
+    openGrokBinPath=$downloadPath/$untarName/bin/OpenGrok
+    $execPrefix ls -l $sourceWarPath 2> /dev/null
+    if [[ $? == 0 && -x $openGrokBinPath ]]; then
+        echo "[Warning]: already has OpenGrok source.war deployed, skip"
+        return
+    fi
+
     cd $downloadPath
     # check if already has this tar ball.
     if [[ -f $tarName ]]; then
         echo [Warning]: Tar Ball $tarName already exist
     else
         wget --no-cookies \
-             --no-check-certificate \
-             --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-             "${wgetLink}/${tarName}" \
-             -O $tarName
+            --no-check-certificate \
+            --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+            "${wgetLink}/${tarName}" \
+            -O $tarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
             echo [Error]: wget error, quiting now
@@ -432,29 +439,21 @@ _EOF
     if [[ ! -d $untarName ]]; then
         tar -zxv -f $tarName
     fi
-    cat << _EOF
-------------------------------------------------------
-MAKEING DYNAMIC ENVIRONMENT FILE FOR SOURCE
-------------------------------------------------------
-_EOF
+
     # call func makeDynEnv
     makeDynEnv
 
-    # enter into opengrok downloaded dir
-    cd $downloadPath
-    cd $untarName/bin
-    # OpenGrok executable file name is OpenGrok
-    ogExecFile=OpenGrok
+    cd $downloadPath/$untarName/bin/
     # add write privilege to it.
-    chmod +w $ogExecFile
-    OPENGROKPATH=`pwd`
-
-    # add source command on top of script OpenGrok
-    # delete already command at first
-    # notice double quotation marks
+    chmod +x OpenGrok
+    # add 'source command' on top of 'OpenGrok'
+    # delete already added 'source command' first of all
+    # be careful for double quotation marks
     sed -i '/^source.*env$/d' OpenGrok 2> /dev/null
     sed -i "2a source ${mainWd}/${dynamicEnvName}" OpenGrok
-    $execPrefix ./$ogExecFile deploy
+
+    # deploy OpenGrok war to tomcat
+    $execPrefix ./OpenGrok deploy
     # [Warning]: OpenGrok can not be well executed in other location.
     # ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok
 
@@ -477,9 +476,13 @@ java home = $javaInstDir
 tomcat home = $tomcatInstDir
 opengrok instance base = $opengrokInstanceBase
 opengrok source root = $opengrokSrcRoot
+http://127.0.0.1:${newListenPort}     OR
 http://127.0.0.1:${newListenPort}/source
-------------------------------------------------------
+-----------------------------------------------------
 _EOF
+# --------------------------------------------- OpenGrok Path -------
+# $openGrokBinPath
+# -------------------------------------------------------------------
     cat $summaryTxt
 }
 
