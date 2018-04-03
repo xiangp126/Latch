@@ -296,6 +296,7 @@ _EOF
     $execPrefix chmod 775 conf
     $execPrefix chmod g+r conf/*
 
+    $execPrefix cp $srvXmlTemplate $serverXmlPath
     # change listen port if not the default value, passed as $1
     changeListenPort $1
 
@@ -476,7 +477,6 @@ java home = $javaInstDir
 tomcat home = $tomcatInstDir
 opengrok instance base = $opengrokInstanceBase
 opengrok source root = $opengrokSrcRoot
-http://127.0.0.1:${newListenPort}     OR
 http://127.0.0.1:${newListenPort}/source
 -----------------------------------------------------
 _EOF

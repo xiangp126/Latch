@@ -88,7 +88,6 @@ sudo ./daemon.sh start
 TOMCAT STARTED SUCCESSFULLY
 ---------------------------------------- SUMMARY ----
 universal ctags path = /usr/local/bin/ctags
-git-lfs path = /usr/local/bin/git-lfs
 java path = /opt/java8/bin/java
 jsvc path = /opt/tomcat8/bin/jsvc
 java home = /opt/java8
