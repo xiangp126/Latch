@@ -2,6 +2,7 @@
     - automatically generating PATH/config files, need not set extra var
     - [use split/cat to store large packages originally transient on Oracle official website](https://github.com/xiangp126/split-and-cat)
     - server user is jsvc, more safe than jsut use root
+    - specify listen port as parameter, 8080 default
 - Imcremental install supported, safe to run consecutive times
 - Has checked on Ubuntu 14.04 LTS | CentOS 6.9
 - May install
@@ -45,6 +46,8 @@ $ sh oneKey.sh
 ```
 ```bash
 $ sh oneKey.sh install
+
+Then browser http://IP:8080 or http://IP:8080/source
 ```
 
 ## Brief Usage
@@ -94,6 +97,7 @@ java home = /opt/java8
 tomcat home = /opt/tomcat8
 opengrok instance base = /opt/opengrok
 opengrok source root = /opt/o-source
+http://127.0.0.1:8080     or
 http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```

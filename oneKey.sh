@@ -477,6 +477,7 @@ java home = $javaInstDir
 tomcat home = $tomcatInstDir
 opengrok instance base = $opengrokInstanceBase
 opengrok source root = $opengrokSrcRoot
+http://127.0.0.1:${newListenPort}     or
 http://127.0.0.1:${newListenPort}/source
 -----------------------------------------------------
 _EOF
