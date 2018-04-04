@@ -47,7 +47,7 @@ $ sh oneKey.sh
 ```bash
 $ sh oneKey.sh install
 
-Then browser http://IP:8080 or http://IP:8080/source
+Then browser http://IP:8080/source
 ```
 
 ## Brief Usage
@@ -97,7 +97,6 @@ java home = /opt/java8
 tomcat home = /opt/tomcat8
 opengrok instance base = /opt/opengrok
 opengrok source root = /opt/o-source
-http://127.0.0.1:8080     or
 http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```
