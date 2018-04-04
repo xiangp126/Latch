@@ -536,7 +536,7 @@ tackleWebService() {
     cd $mainWd
     cat << _EOF
 --------------------------------------------------------
-STOP TOMCAT DAEMON ALREADY RUNNING
+STOP TOMCAT WEB SERVICE
 --------------------------------------------------------
 _EOF
     # not check exit status
@@ -544,6 +544,7 @@ _EOF
     retVal=$?
     #just print warning
     if [[ $retVal != 0 ]]; then
+        set +x
         cat << _EOF
 [Warning]: daemon stop returns value: $retVal
 _EOF
@@ -563,6 +564,7 @@ _EOF
                 break
             fi
         done
+        set -x
     fi
     cat << _EOF
 --------------------------------------------------------

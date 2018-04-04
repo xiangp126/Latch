@@ -5,7 +5,8 @@ https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-
 Centos 6 upgrade to kernel 4.4, fixing java fatal error
 https://www.jianshu.com/p/25d8ecc75846
 
-Tomcat Multiple instances
+-- Tomcat Multiple instances
+https://my.oschina.net/mzdbxqh/blog/868011
 https://www.jianshu.com/p/0b549d00ecc2
-http://jerome-wang.iteye.com/blog/1440593?spm=a2c4e.11153940.blogcont535408.11.7043760d1i0zyb
+
 https://blog.csdn.net/altand/article/details/7257023
