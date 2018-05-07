@@ -29,6 +29,8 @@ summaryTxt=INSTALLATION.TXT
 downloadPath=$mainWd/downloads
 # store JDK/Tomcat packages
 pktPath=$mainWd/packages
+jdkVersion=jdk-8u171-linux-x64
+tomcatVersion=apache-tomcat-8.5.31
 
 logo() {
     cat << "_EOF"
@@ -134,7 +136,7 @@ REASSEMBLE JDK USING LINUX SPLIT/CAT
 ------------------------------------------------------
 _EOF
     jdkSliceDir=$mainWd/packages/jdk-splits
-    slicePrefix=jdk-8u161-linux-x64
+    slicePrefix=jdk-8u171-linux-x64
     jdkTarName=${slicePrefix}.tar.gz
 
     cd $pktPath
@@ -183,9 +185,8 @@ _EOF
     fi
     # tackle to install java8
     JAVA_HOME=$javaInstDir
-    # wgetLink=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808
-    tarName=jdk-8u161-linux-x64.tar.gz
-    # untarName=jdk1.8.0_161
+    # jdkVersion=jdk-8u171-linux-x64
+    tarName=${jdkVersion}.tar.gz
 
     $execPrefix rm -rf $javaInstDir
     $execPrefix mkdir -p $javaInstDir
@@ -274,9 +275,9 @@ _EOF
         $execPrefix useradd -s /bin/false -g $newGrp -d $tomcatInstDir $newUser
     fi
 
-    # begin download routine
     # wgetLink=http://www-eu.apache.org/dist/tomcat/tomcat-8/v8.5.27/bin
-    tarName=apache-tomcat-8.5.27.tar.gz
+    # tomcatVersion=apache-tomcat-8.5.31
+    tarName=${tomcatVersion}.tar.gz
 
     cd $pktPath
     # untar into /opt/tomcat and strip one level directory
@@ -407,9 +408,9 @@ installOpenGrok() {
 INSTALLING OPENGROK
 ------------------------------------------------------
 _EOF
-    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc21
-    tarName=opengrok-1.1-rc21.tar.gz
-    untarName=opengrok-1.1-rc21
+    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc25
+    tarName=opengrok-1.1-rc25.tar.gz
+    untarName=opengrok-1.1-rc25
 
     sourceWarPath=$tomcatInstDir/webapps/source.war
     # OpenGrok executable file name is OpenGrok

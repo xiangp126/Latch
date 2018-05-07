@@ -7,9 +7,9 @@
 - Has checked on Ubuntu 14.04 LTS | CentOS 6.9
 - May install
     - universal ctags latest
-    - java 		v(8u161)
-    - tomcat 	v(8.5.27)
-    - OpenGrok  v(1.1-rc21)
+    - java 		v(8u171)
+    - tomcat 	v(8.5.31)
+    - OpenGrok  v(1.1-rc25)
 
 Current released version: 2.7
 
@@ -100,6 +100,9 @@ opengrok source root = /opt/o-source
 http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```
+
+## Notice
+If you use EZ-Zoom on Chrome with OpenGrok, make sure it's 100% or OpenGrok will jump to the wrong line
 
 ## License
 The [MIT](https://github.com/xiangp126/let-opengrok/blob/master/LICENSE.txt) License (MIT)

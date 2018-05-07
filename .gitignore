@@ -6,4 +6,4 @@ daemon.sh
 opengrok-*
 INSTALLATION.TXT
 downloads/
-jdk-8u161-linux-x64.tar.gz
+jdk-*.tar.gz
