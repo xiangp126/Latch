@@ -1,6 +1,6 @@
 - This project aims to deploy OpenGrok on Linux server by just single command
     - automatically generating PATH/config files, need not set extra var
-    - [use split/cat to store large packages originally transient on Oracle official website](https://github.com/xiangp126/split-and-cat)
+    - use [split/cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
     - server user is jsvc, more safe than jsut use root
     - specify listen port as parameter, 8080 default
 - Imcremental install supported, safe to run consecutive times
