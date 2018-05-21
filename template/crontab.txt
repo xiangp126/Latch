@@ -1,0 +1,1 @@
+15 05 * * * $PATH_OF_SHELL/update.sh

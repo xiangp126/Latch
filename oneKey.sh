@@ -1,7 +1,7 @@
 #!/bin/bash
-# where is shell executed
+# From which path it was executed
 startDir=`pwd`
-# main work directory, not influenced by start dir
+# Absolute path of this shell, no impact by start dir
 mainWd=$(cd $(dirname $0); pwd)
 # common install directory
 rootInstDir=/opt
@@ -393,6 +393,7 @@ export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
 export OPENGROK_SRC_ROOT=$opengrokSrcRoot
 # export OPENGROK_WEBAPP_CONTEXT=ROOT
 export OPENGROK_CTAGS=$uCtagsPath
+export OPENGROK_BIN_PATH=$openGrokBinPath
 _EOF
     # do not parse value of $var
     cat >> $dynamicEnvName << "_EOF"
@@ -408,18 +409,19 @@ installOpenGrok() {
 INSTALLING OPENGROK
 ------------------------------------------------------
 _EOF
-    wgetLink=https://github.com/oracle/opengrok/releases/download/1.1-rc25
-    tarName=opengrok-1.1-rc25.tar.gz
-    untarName=opengrok-1.1-rc25
+    wgetVersion=1.1-rc25
+    wgetLink=https://github.com/oracle/opengrok/releases/download/$wgetVersion
+    tarName=opengrok-$wgetVersion.tar.gz
+    untarName=opengrok-$wgetVersion
 
     sourceWarPath=$tomcatInstDir/webapps/source.war
     # OpenGrok executable file name is OpenGrok
     openGrokBinPath=$downloadPath/$untarName/bin/OpenGrok
     $execPrefix ls -l $sourceWarPath 2> /dev/null
-    if [[ $? == 0 && -x $openGrokBinPath ]]; then
-        echo "[Warning]: already has OpenGrok source.war deployed, skip"
-        return
-    fi
+    # if [[ $? == 0 && -x $openGrokBinPath ]]; then
+        # echo "[Warning]: already has OpenGrok source.war deployed, skip"
+        # return
+    # fi
 
     cd $downloadPath
     # check if already has this tar ball.

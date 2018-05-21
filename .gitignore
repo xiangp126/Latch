@@ -2,6 +2,8 @@
 *.swo
 *.bak
 dynamic.env
+crontab.txt
+crontab.log
 daemon.sh
 opengrok-*
 INSTALLATION.TXT
