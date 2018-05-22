@@ -3,6 +3,7 @@
     - use [split/cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
     - server user is jsvc, more safe than jsut use root
     - specify listen port as parameter, 8080 default
+    - cron update shell provided
 - Imcremental install supported, safe to run consecutive times
 - Has checked on Ubuntu 14.04 LTS | CentOS 6.9
 - May install
@@ -11,7 +12,7 @@
     - tomcat 	v(8.5.31)
     - OpenGrok  v(1.1-rc25)
 
-Current released version: 2.7
+Current released version: 2.8
 
 ![](./gif/guide.gif)
 
@@ -50,7 +51,7 @@ $ sh oneKey.sh install
 Then browser http://IP:8080/source
 ```
 
-## Brief Usage
+## Brief Installation Summary
 ```bash
 $ sh oneKey.sh summary
 -------------------------------------------------
@@ -67,7 +68,7 @@ sudo ./daemon.sh stop
 -------------------------------------------------
 FOR OPENGROK GUIDE
 -------------------------------------------------
--- Under ./downloads/opengrok-1.1-rc17/bin
+-- Under ./downloads/opengrok-1.1-rc25/bin
 # deploy OpenGrok
 sudo ./OpenGrok deploy
 
@@ -99,6 +100,24 @@ opengrok instance base = /opt/opengrok
 opengrok source root = /opt/o-source
 http://127.0.0.1:8080/source
 ------------------------------------------------------
+```
+
+## Update Repository
+Only support git repo.
+
+Revise 'Update Directory' to fit your requirement
+```
+updateDir=(
+    "dpvs"
+    "dpdk"
+    "Add Repo Name Here"
+)
+```
+
+## Use Cron Auto Update
+Revise your time first and then execute the shell
+```
+sh addCron.sh
 ```
 
 ## Notice
