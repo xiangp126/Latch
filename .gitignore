@@ -8,4 +8,5 @@ daemon.sh
 opengrok-*
 INSTALLATION.TXT
 downloads/
+log/
 jdk-*.tar.gz

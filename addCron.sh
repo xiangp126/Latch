@@ -3,9 +3,12 @@
 startDir=`pwd`
 # Absolute path of this shell, no impact by start dir
 mainWd=$(cd $(dirname $0); pwd)
+logDir=$mainWd/log
+logFile=$logDir/crontab.log
+crontabFile=$mainWd/crontab.txt
+updateShellPath=$mainWd/update.sh
 execPrefix=sudo
 
-updateShellPath=$mainWd/update.sh
 if [[ ! -f $updateShellPath ]]; then
     echo "[Error]: Not found update shell, pls check"
     exit 255
@@ -26,10 +29,13 @@ fi
 # 50 9 * * * $updateShellPath &> $mainWd/crontab.log
 # 04 20 * * * $updateShellPath &> $mainWd/crontab.log
 
+# Create log directory if not exist
+if [[ ! -d $logDir ]]; then
+    mkdir -p $logDir
+fi
 # Generate crontab file
-crontabFile=$mainWd/crontab.txt
 cat << _EOF > $crontabFile
-04 20 * * * $updateShellPath &> $mainWd/crontab.log
+04 20 * * * $updateShellPath &> $logFile
 _EOF
 
 # Add into cron
