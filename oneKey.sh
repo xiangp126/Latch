@@ -25,6 +25,7 @@ tomcatUser=tomcat8
 tomcatGrp=tomcat8
 # store install summary
 summaryTxt=INSTALLATION.TXT
+mRunFlagFile=$mainWd/.MORETIME.txt
 # store all downloaded packages here
 downloadPath=$mainWd/downloads
 # store JDK/Tomcat packages
@@ -213,6 +214,10 @@ _EOF
 }
 
 changeListenPort() {
+    # Restore server.sml to original
+    # srvXmlTemplate=$mainWd/template/server.xml
+    $execPrefix cp $srvXmlTemplate $serverXmlPath
+
     # change listen port if not the default value, passed as $1
     if [[ "$1" != "" && "$1" != 8080 ]]; then
         newListenPort=$1
@@ -247,8 +252,6 @@ _EOF
             echo [Error]: missing $serverXmlPath, please check it
             exit 255
         fi
-        # srvXmlTemplate=$mainWd/template/server.xml
-        $execPrefix cp $srvXmlTemplate $serverXmlPath
 
         # change listen port if not the default value, passed as $1
         changeListenPort $1
@@ -295,7 +298,6 @@ _EOF
     $execPrefix chmod 775 conf
     $execPrefix chmod g+r conf/*
 
-    $execPrefix cp $srvXmlTemplate $serverXmlPath
     # change listen port if not the default value, passed as $1
     changeListenPort $1
 
@@ -407,7 +409,7 @@ installOpenGrok() {
 INSTALLING OPENGROK
 ------------------------------------------------------
 _EOF
-    wgetVersion=1.1-rc25
+    wgetVersion=1.1-rc27
     wgetLink=https://github.com/oracle/opengrok/releases/download/$wgetVersion
     tarName=opengrok-$wgetVersion.tar.gz
     untarName=opengrok-$wgetVersion
@@ -416,10 +418,10 @@ _EOF
     # OpenGrok executable file name is OpenGrok
     openGrokBinPath=$downloadPath/$untarName/bin/OpenGrok
     $execPrefix ls -l $sourceWarPath 2> /dev/null
-    # if [[ $? == 0 && -x $openGrokBinPath ]]; then
-        # echo "[Warning]: already has OpenGrok source.war deployed, skip"
+    if [[ $? == 0 && -x $openGrokBinPath ]]; then
+        echo "[Warning]: already has OpenGrok source.war deployed, skip"
         # return
-    # fi
+    fi
 
     cd $downloadPath
     # check if already has this tar ball.
@@ -433,8 +435,7 @@ _EOF
             -O $tarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
-            echo [Error]: wget error, quiting now
-            exit
+            exit 1
         fi
     fi
 
@@ -456,11 +457,13 @@ _EOF
 
     # deploy OpenGrok war to tomcat
     $execPrefix ./OpenGrok deploy
-    # [Warning]: OpenGrok can not be well executed in other location.
+    # [Warning]: OpenGrok can not be well executed from other location.
     # ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok
 
     # fix one warning
     $execPrefix mkdir -p ${opengrokInstanceBase}/src
+    $execPrefix mkdir -p ${opengrokInstanceBase}/data
+    $execPrefix mkdir -p ${opengrokInstanceBase}/etc
     $execPrefix cp -f ../doc/logging.properties \
                  ${opengrokInstanceBase}/logging.properties
     # mkdir opengrok SRC_ROOT if not exist
@@ -469,26 +472,32 @@ _EOF
 
 installSummary() {
     cat > $summaryTxt << _EOF
-TOMCAT STARTED SUCCESSFULLY
+
 ---------------------------------------- SUMMARY ----
 universal ctags path = $uCtagsPath
 java path = $javaPath
-jsvc path = $jsvcPath
+_EOF
+    if [[ $osType == "linux" ]]; then
+        echo jsvc path = $jsvcPath >> $summaryTxt
+    fi
+    cat >> $summaryTxt << _EOF
 java home = $javaInstDir
 tomcat home = $tomcatInstDir
 opengrok instance base = $opengrokInstanceBase
 opengrok source root = $opengrokSrcRoot
 http://127.0.0.1:${newListenPort}/source
------------------------------------------------------
 _EOF
-# --------------------------------------------- OpenGrok Path -------
-# $openGrokBinPath
-# -------------------------------------------------------------------
+    cat >> $summaryTxt << _EOF
+--------------------------------------------- OpenGrok Path -------
+$openGrokBinPath
+-------------------------------------------------------------------
+_EOF
     cat $summaryTxt
 }
 
 printHelpPage() {
-    cat << _EOF
+    if [[ $osType = "linux" ]]; then
+        cat << _EOF
 -------------------------------------------------
 FOR TOMCAT 8 GUIDE
 -------------------------------------------------
@@ -525,6 +534,7 @@ sudo ./daemon.sh stop
 sudo ./daemon.sh start
 ------------------------------------------------------
 _EOF
+    fi
     if [[ -f $summaryTxt ]]; then
         cat $summaryTxt
     fi
@@ -539,32 +549,35 @@ tackleWebService() {
 STOP TOMCAT WEB SERVICE
 --------------------------------------------------------
 _EOF
-    # not check exit status
-    sudo ./daemon.sh stop
-    retVal=$?
-    #just print warning
-    if [[ $retVal != 0 ]]; then
-        set +x
-        cat << _EOF
+    if [[ $osType == "mac" ]]; then
+        catalina stop 2> /dev/null
+    else
+        sudo ./daemon.sh stop
+        retVal=$?
+        # just print warning
+        if [[ $retVal != 0 ]]; then
+            set +x
+            cat << _EOF
 [Warning]: daemon stop returns value: $retVal
 _EOF
-        # loop to kill tomcat living threads if daemon method failed
-        for (( i = 0; i < 2; i++ )); do
-            # root   70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
-            tomcatThreads=`ps aux | grep -i tomcat | grep -i jsvc.exec | tr -s " " \
-                | cut -d " " -f 2`
-            if [[ "$tomcatThreads" != "" ]]; then
-                $execPrefix kill -15 $tomcatThreads
-                if [[ $? != 0 ]]; then
-                    echo [Error]: Tomcat threads stop failed $(echo $1 + 1 | bc) time
-                    sleep 1
-                    continue
+            # loop to kill tomcat living threads if daemon method failed
+            for (( i = 0; i < 2; i++ )); do
+                # root   70057  431  0.1 38846760 318236 pts/39 Sl  05:36   0:08 jsvc.
+                tomcatThreads=`ps aux | grep -i tomcat | grep -i jsvc.exec | tr -s " " \
+                    | cut -d " " -f 2`
+                if [[ "$tomcatThreads" != "" ]]; then
+                    $execPrefix kill -15 $tomcatThreads
+                    if [[ $? != 0 ]]; then
+                        echo [Error]: Stop Tomcat failed $(echo $1 + 1 | bc) time
+                        sleep 1
+                        continue
+                    fi
+                else
+                    break
                 fi
-            else
-                break
-            fi
-        done
-        set -x
+            done
+            set -x
+        fi
     fi
     cat << _EOF
 --------------------------------------------------------
@@ -572,8 +585,13 @@ START TOMCAT WEB SERVICE
 --------------------------------------------------------
 _EOF
     sleep 1
-    # try some times to start tomcat web service
-    $execPrefix ./daemon.sh start
+    if [[ $osType == "mac" ]]; then
+        catalina start
+    else
+        # try some times to start tomcat web service
+        $execPrefix ./daemon.sh start
+    fi
+
     retVal=$?
     # just print warning
     if [[ $retVal != 0 ]]; then
@@ -583,13 +601,42 @@ _EOF
     fi
 }
 
+preInstallForMac() {
+    # brew cask remove caskroom/versions/java8
+    if [[ ! -f $mRunFlagFile ]]; then
+        brew cask install caskroom/versions/java8
+        brew install tomcat
+        touch $mRunFlagFile
+    fi
+    javaInstDir=$(/usr/libexec/java_home -v 1.8)
+    javaPath=`which java 2> /dev/null`
+    tomcatInstPDir=/usr/local/Cellar/tomcat
+    instVersion=`cd $tomcatInstPDir&& ls `
+    # such as /usr/local/Cellar/tomcat/9.0.8
+    tomcatInstDir=$tomcatInstPDir/$instVersion/libexec
+    serverXmlPath=${tomcatInstDir}/conf/server.xml
+    tomcatUser=`whoami`
+    tomcatGrp='staff'
+}
+
 install() {
     mkdir -p $downloadPath
-    reAssembleJDK
+    osName=`uname -s 2> /dev/null`
+    if [[ "$osName" == "Darwin" ]]; then
+        # os type is Mac OS
+        osType=mac
+        preInstallForMac
+        # $1 passed as new listen port
+        changeListenPort $1
+    else
+        # os type is Linux
+        osType=linux
+        reAssembleJDK
+        installJava8
+        # $1 passed as new listen port
+        installTomcat8 $1
+    fi
     installuCtags
-    installJava8
-    # $1 passed as new listen port
-    installTomcat8 $1
     installOpenGrok
     tackleWebService
     installSummary

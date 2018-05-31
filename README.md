@@ -10,9 +10,10 @@
     - universal ctags latest
     - java 		v(8u171)
     - tomcat 	v(8.5.31)
-    - OpenGrok  v(1.1-rc25)
+    - OpenGrok  v(1.1-rc27)
+- Add support for Mac OS from tag 2.9
 
-Current released version: 2.8
+Current released version: 2.9
 
 ![](./gif/guide.gif)
 
