@@ -1,12 +1,11 @@
-- This project aims to deploy OpenGrok on Linux server by just single command
-    - automatically generating PATH/config files, need not set extra var
+- This project aims to deploy OpenGrok on server by just single command
+    - automatically generating PATH/config files, no extra env set needed
     - use [split/cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
-    - server user is jsvc, more safe than jsut use root
+    - server user is jsvc, more safe than blind use root
     - specify listen port as parameter, 8080 default
     - cron update shell provided
 - Imcremental install supported, safe to run consecutive times
-- Has checked on Ubuntu 14.04 LTS | CentOS 6.9
-- May install
+- May install for Linux
     - universal ctags latest
     - java 		v(8u171)
     - tomcat 	v(8.5.31)
@@ -18,6 +17,9 @@ Current released version: 2.9
 ![](./gif/guide.gif)
 
 ## Quick Start
+```bash
+git clone https://github.com/xiangp126/Let-OpenGrok
+```
 ```bash
 $ sh oneKey.sh
 [NAME]
@@ -49,7 +51,7 @@ $ sh oneKey.sh
 ```bash
 $ sh oneKey.sh install
 
-Then browser http://IP:8080/source
+Then browser http://server-ip:8080/source
 ```
 
 ## Brief Installation Summary
