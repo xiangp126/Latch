@@ -52,6 +52,8 @@ $ sh oneKey.sh
 $ sh oneKey.sh install
 
 Then browser http://server-ip:8080/source
+
+Put your source into OPENGROK_SRC_ROOT
 ```
 
 ## Brief Installation Summary
@@ -105,21 +107,37 @@ http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```
 
-## Update Repository
-Only support git repo.
+## Auto Update Repository
+### Update Tool
+Only support git repository
 
-Revise 'Update Directory' to fit your requirement
+```bash
+# Go into your OPENGROK_SRC_ROOT
+pwd
+/opt/o-source
+
+ls
+coreutils-8.21      dpdk-stable-17.11.2 glibc-2.7           libconhash
+dpdk-stable-17.05.2 dpvs                keepalived          nginx
 ```
+revise in [update.sh](./update.sh)
+```bash
 updateDir=(
     "dpvs"
-    "dpdk"
-    "Add Repo Name Here"
+    "keepalived"
+    "Add Repo Name according to upper dir name"
 )
 ```
 
-## Use Cron Auto Update
-Revise your time first and then execute the shell
+### Cron Tool
+revise in [addCron.sh](./addCron.sh), chage the time as you wish
+```bash
+cat << _EOF > $crontabFile
+04 11 * * * $updateShellPath &> $logFile
+_EOF
 ```
+Execute the cron shell
+```bash
 sh addCron.sh
 ```
 
