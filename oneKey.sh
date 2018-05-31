@@ -29,8 +29,6 @@ summaryTxt=INSTALLATION.TXT
 downloadPath=$mainWd/downloads
 # store JDK/Tomcat packages
 pktPath=$mainWd/packages
-jdkVersion=jdk-8u171-linux-x64
-tomcatVersion=apache-tomcat-8.5.31
 
 logo() {
     cat << "_EOF"
@@ -185,7 +183,7 @@ _EOF
     fi
     # tackle to install java8
     JAVA_HOME=$javaInstDir
-    # jdkVersion=jdk-8u171-linux-x64
+    jdkVersion=jdk-8u171-linux-x64
     tarName=${jdkVersion}.tar.gz
 
     $execPrefix rm -rf $javaInstDir
@@ -276,7 +274,7 @@ _EOF
     fi
 
     # wgetLink=http://www-eu.apache.org/dist/tomcat/tomcat-8/v8.5.27/bin
-    # tomcatVersion=apache-tomcat-8.5.31
+    tomcatVersion=apache-tomcat-8.5.31
     tarName=${tomcatVersion}.tar.gz
 
     cd $pktPath
