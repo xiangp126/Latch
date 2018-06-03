@@ -6,9 +6,9 @@
     - cron update shell provided
 - Imcremental install supported, safe to run consecutive times
 - May install for Linux
-    - universal ctags latest
-    - java 		v(8u171)
-    - tomcat 	v(8.5.31)
+    - Universal Ctags latest
+    - Java      v(8u171)
+    - Tomcat    v(8.5.31)
     - OpenGrok  v(1.1-rc27)
 - Add support for Mac OS from tag 2.9
 
