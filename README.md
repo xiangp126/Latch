@@ -2,13 +2,13 @@
     - automatically generating PATH/config files, no extra env set needed
     - use [split/cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
     - server user is jsvc, more safe than blind use root
-    - specify listen port as parameter, 8080 default
-    - cron update shell provided
+    - support auto change listen port, passed as parameter (8080 default)
+    - provide cron update tool
 - Imcremental install supported, safe to run consecutive times
 - May install for Linux
-    - universal ctags latest
-    - java 		v(8u171)
-    - tomcat 	v(8.5.31)
+    - Universal Ctags latest
+    - Java      v(8u171)
+    - Tomcat    v(8.5.31)
     - OpenGrok  v(1.1-rc27)
 - Add support for Mac OS from tag 2.9
 
@@ -53,11 +53,11 @@ $ sh oneKey.sh install
 
 Then browser http://server-ip:8080/source
 
-Put your source into OPENGROK_SRC_ROOT
+Put your source into OPENGROK_SRC_ROOT as directory
 ```
 
 ## Brief Usage After Install
-### start service
+### Start Service
 on Mac OS
 ```bash
 catalina stop
@@ -69,7 +69,8 @@ sudo ./daemon stop
 sudo ./daemon start
 ```
 
-### create index
+### Create Index
+Example
 ```bash
 # make index of source (multiple index)
 sudo ./OpenGrok index [/opt/o-source]
