@@ -56,45 +56,27 @@ Then browser http://server-ip:8080/source
 Put your source into OPENGROK_SRC_ROOT
 ```
 
-## Brief Installation Summary
+## Brief Usage After Install
+### start service
+on Mac OS
 ```bash
-$ sh oneKey.sh summary
--------------------------------------------------
-FOR TOMCAT 8 GUIDE
--------------------------------------------------
--- Under /home/corsair/myGit/cc-opengrok
-# start tomcat
-sudo ./daemon.sh start
-or
-sudo ./daemon.sh run
-sudo ./daemon.sh run &> /dev/null &
-# stop tomcat
-sudo ./daemon.sh stop
--------------------------------------------------
-FOR OPENGROK GUIDE
--------------------------------------------------
--- Under ./downloads/opengrok-1.1-rc25/bin
-# deploy OpenGrok
-sudo ./OpenGrok deploy
+catalina stop
+catalina start
+```
+on Linux
+```bash
+sudo ./daemon stop
+sudo ./daemon start
+```
 
-# if make soft link of source to SRC_ROOT
-# care for Permission of SRC_ROOT for user: tomcat8
-cd /opt/o-source
-sudo ln -s /usr/local/src/* .
-
+### create index
+```bash
 # make index of source (multiple index)
 sudo ./OpenGrok index [/opt/o-source]
                        /opt/source   -- proj1
                                      -- proj2
                                      -- proj3
---------------------------------------------------------
--- GUIDE TO CHANGE LISTEN PORT
-# replace s/original/8080/ to the port you want to change
-sudo sed -i 's/8080/8080/' /opt/tomcat8/conf/server.xml
-sudo ./daemon.sh stop
-sudo ./daemon.sh start
-------------------------------------------------------
-TOMCAT STARTED SUCCESSFULLY
+
 ---------------------------------------- SUMMARY ----
 universal ctags path = /usr/local/bin/ctags
 java path = /opt/java8/bin/java
@@ -107,7 +89,7 @@ http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```
 
-## Auto Update Repository
+## Auto Update Repository - Tool
 ### Update Tool
 Only support git repository
 
