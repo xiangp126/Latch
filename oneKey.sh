@@ -461,13 +461,15 @@ _EOF
     # ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok
 
     # fix one warning
-    $execPrefix mkdir -p ${opengrokInstanceBase}/src
-    $execPrefix mkdir -p ${opengrokInstanceBase}/data
-    $execPrefix mkdir -p ${opengrokInstanceBase}/etc
+    $execPrefix mkdir -p ${opengrokInstanceBase}/{src,data,etc}
     $execPrefix cp -f ../doc/logging.properties \
                  ${opengrokInstanceBase}/logging.properties
     # mkdir opengrok SRC_ROOT if not exist
     $execPrefix mkdir -p $opengrokSrcRoot
+    srcRootUser=`whoami 2> /dev/null`
+    if [[ '$srcRootUser' != '' ]]; then
+        $execPrefix chown -R $srcRootUser $opengrokSrcRoot
+    fi
 }
 
 installSummary() {

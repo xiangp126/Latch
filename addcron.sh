@@ -6,11 +6,11 @@ mainWd=$(cd $(dirname $0); pwd)
 logDir=$mainWd/log
 logFile=$logDir/crontab.log
 crontabFile=$mainWd/crontab.txt
-updateShellPath=$mainWd/update.sh
+updateShellPath=$mainWd/autopull.sh
 execPrefix=sudo
 
 if [[ ! -f $updateShellPath ]]; then
-    echo "[Error]: Not found update shell, pls check"
+    echo "[Error]: Not found auto pull shell, pls check"
     exit 255
 fi
 
@@ -35,7 +35,7 @@ if [[ ! -d $logDir ]]; then
 fi
 # Generate crontab file
 cat << _EOF > $crontabFile
-04 20 * * * $updateShellPath &> $logFile
+04 11 * * * $updateShellPath &> $logFile
 _EOF
 
 # Add into cron

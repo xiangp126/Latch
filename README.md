@@ -103,7 +103,7 @@ ls
 coreutils-8.21      dpdk-stable-17.11.2 glibc-2.7           libconhash
 dpdk-stable-17.05.2 dpvs                keepalived          nginx
 ```
-revise in [update.sh](./update.sh)
+revise in [autopull.sh](./autopull.sh)
 ```bash
 updateDir=(
     "dpvs"
@@ -113,15 +113,21 @@ updateDir=(
 ```
 
 ### Cron Tool
-revise in [addCron.sh](./addCron.sh), chage the time as you wish
+revise in [addcron.sh](./addcron.sh), chage the time as you wish
 ```bash
 cat << _EOF > $crontabFile
 04 11 * * * $updateShellPath &> $logFile
 _EOF
 ```
+
+change the shell needs cron to execute as you wish, default is autopull.sh
+```bash
+updateShellPath=$mainWd/autopull.sh
+```
+
 Execute the cron shell
 ```bash
-sh addCron.sh
+sh addcron.sh
 ```
 
 ## Notice

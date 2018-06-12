@@ -11,3 +11,5 @@ INSTALLATION.TXT
 downloads/
 log/
 jdk-*.tar.gz
+rsync.config
+!template/rsync.config
