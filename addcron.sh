@@ -26,8 +26,8 @@ fi
 # *  *  *  *  * user-name command to be executed
 
 # Example
-# 50 9 * * * $updateShellPath &> $mainWd/crontab.log
-# 04 20 * * * $updateShellPath &> $mainWd/crontab.log
+# 04 11 * * * $updateShellPath &> $mainWd/crontab.log
+# 04 20 * * * $updateShellPath &> $logFile
 
 # Create log directory if not exist
 if [[ ! -d $logDir ]]; then
@@ -35,7 +35,7 @@ if [[ ! -d $logDir ]]; then
 fi
 # Generate crontab file
 cat << _EOF > $crontabFile
-04 11 * * * $updateShellPath &> $logFile
+04 20 * * * $updateShellPath &> $logFile
 _EOF
 
 # Add into cron

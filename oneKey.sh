@@ -469,6 +469,7 @@ _EOF
     srcRootUser=`whoami 2> /dev/null`
     if [[ '$srcRootUser' != '' ]]; then
         $execPrefix chown -R $srcRootUser $opengrokSrcRoot
+        $execPrefix chown -R $srcRootUser $opengrokInstanceBase
     fi
 }
 
