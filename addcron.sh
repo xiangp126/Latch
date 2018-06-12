@@ -7,6 +7,7 @@ logDir=$mainWd/log
 logFile=$logDir/crontab.log
 crontabFile=$mainWd/crontab.txt
 updateShellPath=$mainWd/autopull.sh
+# updateShellPath=$mainWd/rsync.sh
 execPrefix=sudo
 
 if [[ ! -f $updateShellPath ]]; then
@@ -26,7 +27,7 @@ fi
 # *  *  *  *  * user-name command to be executed
 
 # Example
-# 04 11 * * * $updateShellPath &> $mainWd/crontab.log
+# 04 11 * * * $updateShellPath &> $logFile
 # 04 20 * * * $updateShellPath &> $logFile
 
 # Create log directory if not exist

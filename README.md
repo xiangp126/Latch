@@ -3,8 +3,8 @@
     - use [split/cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
     - server user is jsvc, more safe than blind use root
     - support auto change listen port, passed as parameter (8080 default)
-    - provide cron update tool
-- Imcremental install supported, safe to run consecutive times
+    - provide auto pull and rsync tool with cron support
+- Imcremental install, safe to run consecutive times
 - May install for Linux
     - Universal Ctags latest
     - Java      v(8u171)
@@ -73,7 +73,7 @@ sudo ./daemon start
 Example
 ```bash
 # make index of source (multiple index)
-sudo ./OpenGrok index [/opt/o-source]
+./OpenGrok index [/opt/o-source]
                        /opt/source   -- proj1
                                      -- proj2
                                      -- proj3
