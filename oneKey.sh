@@ -409,7 +409,7 @@ installOpenGrok() {
 INSTALLING OPENGROK
 ------------------------------------------------------
 _EOF
-    wgetVersion=1.1-rc27
+    wgetVersion=1.1-rc29
     wgetLink=https://github.com/oracle/opengrok/releases/download/$wgetVersion
     tarName=opengrok-$wgetVersion.tar.gz
     untarName=opengrok-$wgetVersion

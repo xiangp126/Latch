@@ -9,7 +9,7 @@
     - Universal Ctags latest
     - Java      v(8u171)
     - Tomcat    v(8.5.31)
-    - OpenGrok  v(1.1-rc27)
+    - OpenGrok  v(1.1-rc29)
 - Add support for Mac OS from tag 2.9
 
 Current released version: 2.9
