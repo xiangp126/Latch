@@ -135,7 +135,7 @@ REASSEMBLE JDK USING LINUX SPLIT/CAT
 ------------------------------------------------------
 _EOF
     jdkSliceDir=$mainWd/packages/jdk-splits
-    slicePrefix=jdk-8u171-linux-x64
+    slicePrefix=jdk-8u172-linux-x64
     jdkTarName=${slicePrefix}.tar.gz
 
     cd $pktPath
@@ -154,7 +154,7 @@ _EOF
 CHECKING THE SHA1 SUM OF JDK
 ------------------------------------------------------
 _EOF
-    shasumPath=`which shasum 2> /dev/null`
+    shasumPath=`which sha256sum 2> /dev/null`
     if [[ $shasumPath == "" ]]; then
         return
     fi
@@ -163,7 +163,7 @@ _EOF
         echo [Error]: missing jdk checksum file, default match
         return
     fi
-    ret=$(shasum --check $checkSumPath)
+    ret=$(sha256sum --check $checkSumPath)
     checkRet=$(echo $ret | grep -i ok 2> /dev/null)
     if [[ "$checkRet" == "" ]]; then
         echo [FatalError]: jdk checksum failed
@@ -184,7 +184,7 @@ _EOF
     fi
     # tackle to install java8
     JAVA_HOME=$javaInstDir
-    jdkVersion=jdk-8u171-linux-x64
+    jdkVersion=jdk-8u172-linux-x64
     tarName=${jdkVersion}.tar.gz
 
     $execPrefix rm -rf $javaInstDir
@@ -196,6 +196,7 @@ _EOF
         echo [Error]: untar java package error, quitting now
         exit
     fi
+
     # javaPath=$javaInstDir/bin/java already defined at top
     if [[ ! -x $javaPath ]]; then
         echo [Error]: java install error, quitting now

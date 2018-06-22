@@ -7,7 +7,7 @@
 - Imcremental install, safe to run consecutive times
 - May install for Linux
     - Universal Ctags latest
-    - Java      v(8u171)
+    - Java      v(8u172)
     - Tomcat    v(8.5.31)
     - OpenGrok  v(1.1-rc29)
 - Add support for Mac OS from tag 2.9
