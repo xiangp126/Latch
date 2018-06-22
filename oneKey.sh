@@ -151,7 +151,7 @@ _EOF
     fi
     cat << "_EOF"
 ------------------------------------------------------
-CHECKING THE SHA1 SUM OF JDK
+CHECKING THE SHASUM OF JDK
 ------------------------------------------------------
 _EOF
     shasumPath=`which sha256sum 2> /dev/null`
@@ -394,6 +394,7 @@ export OPENGROK_TOMCAT_BASE=$CATALINA_HOME
 export OPENGROK_SRC_ROOT=$opengrokSrcRoot
 # export OPENGROK_WEBAPP_CONTEXT=ROOT
 export OPENGROK_CTAGS=$uCtagsPath
+export OPENGROK_GENERATE_HISTORY=off
 export OPENGROK_BIN_PATH=$openGrokBinPath
 _EOF
     # do not parse value of $var
