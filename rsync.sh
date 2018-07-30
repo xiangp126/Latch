@@ -15,8 +15,12 @@ execPrefix=""
 
 PATH=$HOME/.usr/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
 if [[ ! -f $rsyncConfig ]]; then
-    echo "Error: missing rsync config file, you can add one refer ./template/rsync.config"
-    exit
+    cat << "_EOF"
+[Error]: missing rsync config file, you can add one refer ./template/rsync.config
+step 1: cp ./template/rsync.config .
+step 2: vim rsync.config
+_EOF
+    exit 1
 fi
 
 dynamicEnvPath=$mainWd/dynamic.env
