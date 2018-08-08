@@ -1,4 +1,5 @@
-- This project aims to deploy OpenGrok on server by just single command
+## Illustrate
+- This project aims to deploy OpenGrok on server by one-click command
     - automatically generating PATH/config files, no extra env set needed
     - use [split/cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
     - server user is jsvc, more safe than blind use root
@@ -10,18 +11,17 @@
     - Java      v(8u172)
     - Tomcat    v(8.5.31)
     - OpenGrok  v(1.1-rc26)
-- Add support for Mac OS from tag 2.9
+- Support Mac OS from tag 2.9
 
-Current released version: 2.9
-
-![](./gif/guide.gif)
+> Latest released version: 2.9
 
 ## Quick Start
 ```bash
 git clone https://github.com/xiangp126/Let-OpenGrok
 ```
 ```bash
-$ sh oneKey.sh
+sh oneKey.sh
+
 [NAME]
     sh oneKey.sh -- setup OpenGrok through one key stroke
 
@@ -49,21 +49,26 @@ $ sh oneKey.sh
       |_|               |___/
 ```
 ```bash
-$ sh oneKey.sh install
-
-Then browser http://server-ip:8080/source
-
-Put your source into OPENGROK_SRC_ROOT as directory
+sh oneKey.sh install
 ```
+> Take you server address as 127.0.0.1 for example<br>
+> Put your source code into `OPENGROK_SRC_ROOT` as per directory
+
+```bash
+./OpenGrok index
+```
+> Then browser <http://127.0.0.1:8080/source>
 
 ## Brief Usage After Install
 ### Start Service
 on Mac OS
+
 ```bash
 catalina stop
 catalina start
 ```
 on Linux
+
 ```bash
 sudo ./daemon stop
 sudo ./daemon start
@@ -71,7 +76,8 @@ sudo ./daemon start
 
 ### Create Index
 Example
-```bash
+
+```
 # make index of source (multiple index)
 ./OpenGrok index [/opt/o-source]
                        /opt/source   -- proj1
@@ -90,9 +96,9 @@ http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```
 
-## Auto Update Repository - Tool
-### Update Tool
-Only support git repository
+## Handy tools
+### Auto Pull
+Only support git repository, auto re-indexing
 
 ```bash
 # Go into your OPENGROK_SRC_ROOT
@@ -103,7 +109,8 @@ ls
 coreutils-8.21      dpdk-stable-17.11.2 glibc-2.7           libconhash
 dpdk-stable-17.05.2 dpvs                keepalived          nginx
 ```
-revise in [autopull.sh](./autopull.sh)
+Add or remove item in *`updateDir`* of [autopull.sh](./autopull.sh)
+
 ```bash
 updateDir=(
     "dpvs"
@@ -112,20 +119,48 @@ updateDir=(
 )
 ```
 
-### Cron Tool
-revise in [addcron.sh](./addcron.sh), chage the time as you wish
+Execute it
+
 ```bash
+sh autopull.sh
+```
+
+### Auto Rsync
+```bash
+cat template/rsync.config
+# config server info | rsync from
+SSHPORT=
+SSHUSER=
+SERVER=
+SRCDIR_ON_SERVER=
+
+cp ./template/rsync.config .
+vim rsync.config
+# fix the information as instructed
+```
+
+```bash
+sh rsync.sh
+```
+
+### Cron Tool
+Chage the time as you wish in [addcron.sh](./addcron.sh)
+
+```bash
+# Generate crontab file
 cat << _EOF > $crontabFile
-04 11 * * * $updateShellPath &> $logFile
+04 20 * * * $updateShellPath &> $logFile
 _EOF
 ```
 
-change the shell needs cron to execute as you wish, default is autopull.sh
+And change *`updateShellPath`* as the shell needs auto executed by cron as you wish, default is autopull.sh
+
 ```bash
 updateShellPath=$mainWd/autopull.sh
 ```
 
-Execute the cron shell
+Execute it
+
 ```bash
 sh addcron.sh
 ```
