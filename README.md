@@ -1,4 +1,4 @@
-## Illustrate
+### Illustrate
 - This project aims to deploy OpenGrok on server by one-click command
     - automatically generating PATH/config files, no extra env set needed
     - use [split/cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
@@ -15,7 +15,7 @@
 
 > Latest released version: 2.9
 
-## Quick Start
+### Quick Start
 ```bash
 git clone https://github.com/xiangp126/Let-OpenGrok
 ```
@@ -57,17 +57,16 @@ sh oneKey.sh install
 ```bash
 ./OpenGrok index
 ```
-> Then browser <http://127.0.0.1:8080/source>
+Then browser <http://127.0.0.1:8080/source>
 
-## Brief Usage After Install
-### Start Service
-on Mac OS
+### Handle Service
+> on Mac OS
 
 ```bash
 catalina stop
 catalina start
 ```
-on Linux
+> on Linux
 
 ```bash
 sudo ./daemon stop
@@ -75,7 +74,7 @@ sudo ./daemon start
 ```
 
 ### Create Index
-Example
+> Example
 
 ```
 # make index of source (multiple index)
@@ -96,8 +95,7 @@ http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```
 
-## Handy tools
-### Auto Pull
+### Handy tools - Auto Pull
 Only support git repository, auto re-indexing
 
 ```bash
@@ -125,7 +123,7 @@ Execute it
 sh autopull.sh
 ```
 
-### Auto Rsync
+### Handy tools - Auto Rsync
 ```bash
 cat template/rsync.config
 # config server info | rsync from
@@ -143,7 +141,7 @@ vim rsync.config
 sh rsync.sh
 ```
 
-### Cron Tool
+### Handy tools - Cron Tool
 Chage the time as you wish in [addcron.sh](./addcron.sh)
 
 ```bash
@@ -165,8 +163,8 @@ Execute it
 sh addcron.sh
 ```
 
-## Notice
+### Notice
 If you use EZ-Zoom on Chrome with OpenGrok, make sure it's 100% or OpenGrok will jump to the wrong line
 
-## License
+### License
 The [MIT](./LICENSE.txt) License (MIT)
