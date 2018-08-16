@@ -10,10 +10,10 @@
     - Universal Ctags latest
     - Java      v(8u172)
     - Tomcat    v(8.5.31)
-    - OpenGrok  v(1.1-rc26)
+    - OpenGrok  v(1.1-rc33)
 - Support Mac OS from tag 2.9
 
-> Latest released version: 2.9
+> Latest released version: 3.0
 
 ### Quick Start
 ```bash
