@@ -1,9 +1,9 @@
 ### Illustrate
 - This project aims to deploy OpenGrok on server by one-click command
-    - automatically generating PATH/config files, no extra env set needed
-    - use [split/cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
-    - server user is jsvc, more safe than blind use root
-    - support auto change listen port, passed as parameter (8080 default)
+    - automatically generating config files, no extra actions need
+    - use [split and cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
+    - ordinary user for jsvc, not root
+    - may pass listening port wanted as parameter (default 8080)
     - provide auto pull and rsync tool with cron support
 - Imcremental install, safe to run consecutive times
 - May install for Linux
@@ -11,13 +11,13 @@
     - Java      v(8u172)
     - Tomcat    v(8.5.31)
     - OpenGrok  v(1.1-rc33)
-- Support Mac OS from tag 2.9
+- Support Mac OS since `tag 2.9`
 
 > Latest released version: 3.0
 
 ### Quick Start
 ```bash
-git clone https://github.com/xiangp126/Let-OpenGrok
+git clone https://github.com/xiangp126/Leaf Leaf
 ```
 ```bash
 sh oneKey.sh
