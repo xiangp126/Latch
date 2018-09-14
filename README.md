@@ -1,23 +1,21 @@
 ### Illustrate
-- This project aims to deploy OpenGrok on server by one-click command
-    - automatically generating config files, no extra actions need
-    - use [split and cat](https://github.com/xiangp126/split-and-cat) to store large packages originally transient on Oracle official website
-    - ordinary user for jsvc, not root
-    - may pass listening port wanted as parameter (default 8080)
-    - provide auto pull and rsync tool with cron support
-- Imcremental install, safe to run consecutive times
+- This project aims to deploy **OpenGrok** on Unix-like by one-click command
+- Imcremental install and subsequent handling all in one
 - May install for Linux
-    - Universal Ctags latest
-    - Java      v(8u172)
-    - Tomcat    v(8.5.31)
-    - OpenGrok  v(1.1-rc33)
-- Support Mac OS since `tag 2.9`
+
+Package | From | Version | Method | Comment
+:---:|---|:---: | --- | ---
+Universal ctags | Github | latest | Source Compile
+Java | Official | 8u172 | Binary Dwonload | [split and cat](https://github.com/xiangp126/split-and-cat) pack into [jdk-splits](./packages/jdk-splits)
+Tomcat | Official | 8.5.31 | Binary Dwonload | pack into [packages](./packages)
+OpenGrok | Github | 1.1-rc33 | Binary Dwonload
+- Support *Mac OS* since `tag 2.9`
 
 > Latest released version: 3.0
 
 ### Quick Start
 ```bash
-git clone https://github.com/xiangp126/Leaf Leaf
+git clone https://github.com/xiangp126/Leaf
 ```
 ```bash
 sh oneKey.sh
@@ -60,13 +58,13 @@ sh oneKey.sh install
 Then browser <http://127.0.0.1:8080/source>
 
 ### Handle Service
-> on Mac OS
+- on Mac OS
 
 ```bash
 catalina stop
 catalina start
 ```
-> on Linux
+- on Linux
 
 ```bash
 sudo ./daemon stop
@@ -74,14 +72,12 @@ sudo ./daemon start
 ```
 
 ### Create Index
-> Example
-
 ```
 # make index of source (multiple index)
 ./OpenGrok index [/opt/o-source]
-                       /opt/source   -- proj1
-                                     -- proj2
-                                     -- proj3
+                  /opt/source   -- proj1
+                                -- proj2
+                                -- proj3
 
 ---------------------------------------- SUMMARY ----
 universal ctags path = /usr/local/bin/ctags
@@ -164,7 +160,7 @@ sh addcron.sh
 ```
 
 ### Notice
-If you use EZ-Zoom on Chrome with OpenGrok, make sure it's 100% or OpenGrok will jump to the wrong line
+    If you use EZ-Zoom on Chrome with OpenGrok, make sure it's 100% or OpenGrok will jump to the wrong line
 
 ### License
 The [MIT](./LICENSE.txt) License (MIT)
