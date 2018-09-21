@@ -15,7 +15,7 @@ OpenGrok | Github | 1.1-rc33 | Binary Dwonload
 
 ### Quick Start
 ```bash
-git clone https://github.com/xiangp126/Leaf
+git clone https://github.com/xiangp126/Latch
 ```
 ```bash
 sh oneKey.sh
