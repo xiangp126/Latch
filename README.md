@@ -3,12 +3,13 @@
 - Imcremental install and subsequent handling all in one
 - May install for Linux
 
-Package | From | Version | Method | Comment
-:---:|---|:---: | --- | ---
-Universal ctags | Github | latest | Source Compile
-Java | Official | 8u172 | Binary Dwonload | [split and cat](https://github.com/xiangp126/split-and-cat) pack into [jdk-splits](./packages/jdk-splits)
-Tomcat | Official | 8.5.31 | Binary Dwonload | pack into [packages](./packages)
-OpenGrok | Github | 1.1-rc33 | Binary Dwonload
+Package | Version | From | Comment
+:---: |:---: | :---: | ---
+Universal ctags | latest | [universal-ctags](https://github.com/universal-ctags/ctags) | source compile
+Java | 8u172 | [jdk-splits](./packages/jdk-splits) | using [split and cat](https://github.com/xiangp126/split-and-cat)
+Tomcat | 8.5.31 | [packages](./packages) | local binary
+OpenGrok | 1.1-rc33 | [OpenGrok](https://github.com/oracle/opengrok) | official binary
+- Take my [Giggle](http://giggle.ddns.net:8080/source) as example and refer [Guide](./gif/guide.gif) 
 - Support *Mac OS* since `tag 2.9`
 
 > Latest released version: 3.0
