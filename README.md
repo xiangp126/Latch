@@ -1,5 +1,5 @@
 ### Illustrate
-- This project aims to deploy **OpenGrok** on Unix-like by one-click command
+- This project aims to deploy _**OpenGrok**_ on Unix-like by `single click`
 - Imcremental install and subsequent handling all in one
 - May install for Linux
 
