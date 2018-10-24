@@ -1,13 +1,13 @@
 ### Illustrate
-- This project aims to deploy _**OpenGrok**_ on Unix-like by `single click`
-- Imcremental install and subsequent handling all in one
-- May install for Linux
+- This project aims to deploy _**OpenGrok**_ on Unix-like as easy as possible
+- Imcremental installation and subsequential handling all in one
+- serveral packages and scripts provided
 
-Package | Version | From | Comment
+Package | Version | Repo | Comment
 :---: |:---: | :---: | ---
-Universal ctags | latest | [universal-ctags](https://github.com/universal-ctags/ctags) | source compile
-Java | 8u172 | [jdk-splits](./packages/jdk-splits) | using [split and cat](https://github.com/xiangp126/split-and-cat)
-Tomcat | 8.5.31 | [packages](./packages) | local binary
+Universal ctags | latest | [Universal-Ctags](https://github.com/universal-ctags/ctags) | source compile
+Java | 8u172 | [Jdk-Splits](./packages/jdk-splits) | using [split and cat](https://github.com/xiangp126/split-and-cat)
+Tomcat | 8.5.31 | [Packages](./packages) | local binary
 OpenGrok | 1.1-rc33 | [OpenGrok](https://github.com/oracle/opengrok) | official binary
 - Take my [Giggle](http://giggle.ddns.net:8080/source) as example and refer [Guide](./gif/guide.gif) 
 - Support *Mac OS* since `tag 2.9`
@@ -56,17 +56,17 @@ sh oneKey.sh install
 ```bash
 ./OpenGrok index
 ```
-Then browser <http://127.0.0.1:8080/source>
+
+_then browser your `http://127.0.0.1:8080/source`_
 
 ### Handle Service
-- on Mac OS
-
+#### Mac
 ```bash
 catalina stop
 catalina start
 ```
-- on Linux
 
+#### Linux
 ```bash
 sudo ./daemon stop
 sudo ./daemon start
@@ -92,8 +92,8 @@ http://127.0.0.1:8080/source
 ------------------------------------------------------
 ```
 
-### Handy tools - Auto Pull
-Only support git repository, auto re-indexing
+### Handy tools - _Auto Pull_
+_only support Git repository, auto re-indexing_
 
 ```bash
 # Go into your OPENGROK_SRC_ROOT
@@ -104,7 +104,8 @@ ls
 coreutils-8.21      dpdk-stable-17.11.2 glibc-2.7           libconhash
 dpdk-stable-17.05.2 dpvs                keepalived          nginx
 ```
-Add or remove item in *`updateDir`* of [autopull.sh](./autopull.sh)
+
+_add or remove item in *`updateDir`* of [autopull.sh](./autopull.sh)_
 
 ```bash
 updateDir=(
@@ -114,13 +115,13 @@ updateDir=(
 )
 ```
 
-Execute it
+_execute it_
 
 ```bash
 sh autopull.sh
 ```
 
-### Handy tools - Auto Rsync
+### Handy tools - _Auto Rsync_
 ```bash
 cat template/rsync.config
 # config server info | rsync from
@@ -138,8 +139,8 @@ vim rsync.config
 sh rsync.sh
 ```
 
-### Handy tools - Cron Tool
-Chage the time as you wish in [addcron.sh](./addcron.sh)
+### Handy tools - _Cron Tool_
+_chage the time as you wish in [addcron.sh](./addcron.sh)_
 
 ```bash
 # Generate crontab file
@@ -148,13 +149,13 @@ cat << _EOF > $crontabFile
 _EOF
 ```
 
-And change *`updateShellPath`* as the shell needs auto executed by cron as you wish, default is autopull.sh
+_and change *`updateShellPath`* as the shell needs auto executed by cron as you wish, default is `autopull.sh`_
 
 ```bash
 updateShellPath=$mainWd/autopull.sh
 ```
 
-Execute it
+_execute it_
 
 ```bash
 sh addcron.sh
