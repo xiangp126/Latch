@@ -1,14 +1,8 @@
 ### Illustrate
 - This project aims to deploy _**OpenGrok**_ easy and eased
 - Imcremental installation and subsequential handling all in one
-- Using python tools~~(legacy bash)~~ to **deploy** and **generate index** along with `OpenGrok`'s update
+- Using **python** tools(~~legacy bash~~) to deploy and generate index along with `OpenGrok`'s update
 - Provide serveral handy scripts and packages
-
-
-- <https://github.com/oracle/opengrok/wiki/Python-scripts-transition-guide>
-
-[Python-scripts-transition-guide](https://github.com/oracle/opengrok/wiki/Python-scripts-transition-guide)
-
 
 Package | Version | Repo | Comment
 :---: |:---: | :---: | ---
@@ -17,14 +11,17 @@ Java | 8u172 | [Jdk-Splits](./packages/jdk-splits) | private [split and cat](htt
 Tomcat | 8.5.31 | [Packages](./packages) | local binary
 OpenGrok | 1.1-rc74 | [OpenGrok](https://github.com/oracle/opengrok) | official binary
 - Take my [Giggle](http://giggle.ddns.net:8080/source) as example and refer [Guide](./gif/guide.gif) 
-- Support *Mac OS* since tag `v2.9`
+- Support `Mac` since tag `v2.9`
 
 > Latest released version: 3.0
 
-### Quick Start
+### Lazy Deploy
+#### clone `latch`
 ```bash
 git clone https://github.com/xiangp126/Latch
 ```
+
+#### help message
 ```bash
 sh oneKey.sh
 
@@ -54,53 +51,58 @@ sh oneKey.sh
  \___/| .__/ \___|_| |_|\__, |_|  \___/|_|\_\
       |_|               |___/
 ```
+
+#### set up source code
+
+_put your source code into `OPENGROK_SRC_ROOT`, **per code per directory**_
+
+#### start to install
 ```bash
 sh oneKey.sh install
 ```
-> take you server address as `127.0.0.1` for example<br>
-> put your source code into `OPENGROK_SRC_ROOT`, **per code per directory**
 
-```bash
-./OpenGrok index
-```
+#### browser site
+> `indexer` was called in `oneKey`, you can also run `callIndexer` manually<br>
+> take you server address as `127.0.0.1` for example<br>
 
 _then browser your `http://127.0.0.1:8080/source`_
 
-### Handle Service
-#### Mac
+### Handle Web Service
+#### mac
 ```bash
 catalina stop
 catalina start
 ```
 
-#### Linux
+#### linux
 ```bash
+# repo main directory
 sudo ./daemon stop
 sudo ./daemon start
 ```
 
-### Create Index
+### Create Index Manually
+
+_refer [Python-scripts-transition-guide](https://github.com/oracle/opengrok/wiki/Python-scripts-transition-guide)_
+
+#### python tools - new method
+```bash
+# repo main directory
+./callIndexer
 ```
+
+#### bash script - lagacy method
+```bash
 # make index of source (multiple index)
 ./OpenGrok index [/opt/o-source]
                   /opt/source   -- proj1
                                 -- proj2
                                 -- proj3
-
----------------------------------------- SUMMARY ----
-universal ctags path = /usr/local/bin/ctags
-java path = /opt/java8/bin/java
-jsvc path = /opt/tomcat8/bin/jsvc
-java home = /opt/java8
-tomcat home = /opt/tomcat8
-opengrok instance base = /opt/opengrok
-opengrok source root = /opt/o-source
-http://127.0.0.1:8080/source
-------------------------------------------------------
 ```
 
-### Handy tools - _Auto Pull_
-_only support Git repository, auto re-indexing_
+### Introduction to Handy tools
+#### auto pull
+_only support `Git` repository, auto re-indexing_
 
 ```bash
 # Go into your OPENGROK_SRC_ROOT
@@ -128,7 +130,7 @@ _execute it_
 sh autopull.sh
 ```
 
-### Handy tools - _Auto Rsync_
+#### auto rsync
 ```bash
 cat template/rsync.config
 # config server info | rsync from
@@ -146,7 +148,7 @@ vim rsync.config
 sh rsync.sh
 ```
 
-### Handy tools - _Cron Tool_
+#### cron tool
 _chage the time as you wish in [addcron.sh](./addcron.sh)_
 
 ```bash
