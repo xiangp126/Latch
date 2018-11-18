@@ -19,6 +19,7 @@ srvXmlTemplate=$mainWd/template/server.xml
 # dynamic env global name
 dynamicEnvName=dynamic.env
 opengrokInstanceBase=/opt/opengrok
+openGrokBinPath=""
 opengrokSrcRoot=${commInstdir}/o-source
 # new user/group to run tomcat
 tomcatUser=tomcat8
@@ -30,6 +31,10 @@ mRunFlagFile=$mainWd/.MORETIME.txt
 downloadPath=$mainWd/downloads
 # store JDK/Tomcat packages
 pktPath=$mainWd/packages
+loggingPath=$mainWd/log
+callIndexerFilePath=$mainWd/callIndexer
+isSourceWarDeployed=false
+OpenGrokVersion=1.1-rc74
 
 logo() {
     cat << "_EOF"
@@ -411,18 +416,17 @@ installOpenGrok() {
 INSTALLING OPENGROK
 ------------------------------------------------------
 _EOF
-    wgetVersion=1.1-rc33
+    wgetVersion=$OpenGrokVersion
     wgetLink=https://github.com/oracle/opengrok/releases/download/$wgetVersion
     tarName=opengrok-$wgetVersion.tar.gz
     untarName=opengrok-$wgetVersion
 
+    opengropPath=$downloadPath/$untarName
     sourceWarPath=$tomcatInstDir/webapps/source.war
-    # OpenGrok executable file name is OpenGrok
-    openGrokBinPath=$downloadPath/$untarName/bin/OpenGrok
     $execPrefix ls -l $sourceWarPath 2> /dev/null
-    if [[ $? == 0 && -x $openGrokBinPath ]]; then
-        echo "[Warning]: already has OpenGrok source.war deployed, skip"
-        # return
+    if [[ $? == 0 ]]; then
+        echo "[Warning]: already has source.war deployed, skip"
+        isSourceWarDeployed=true
     fi
 
     cd $downloadPath
@@ -437,6 +441,7 @@ _EOF
             -O $tarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
+            echo "wget OpenGrok version $OpenGrokVersion failed"
             exit 1
         fi
     fi
@@ -445,26 +450,20 @@ _EOF
         tar -zxv -f $tarName
     fi
 
-    # call func makeDynEnv
+    # will copy legacy bash OpenGrok script
+    openGrokBinPath=$opengropPath/tools/OpenGrok
+    cp -f $mainWd/template/OpenGrok $openGrokBinPath
+    # call func makeDynEnv -- for legacy bash OpenGrok
     makeDynEnv
 
-    cd $downloadPath/$untarName/bin/
-    # add write privilege to it.
-    chmod +x OpenGrok
-    # add 'source command' on top of 'OpenGrok'
-    # delete already added 'source command' first of all
-    # be careful for double quotation marks
-    sed -i '/^source.*env$/d' OpenGrok 2> /dev/null
-    sed -i "2a source ${mainWd}/${dynamicEnvName}" OpenGrok
-
-    # deploy OpenGrok war to tomcat
-    $execPrefix ./OpenGrok deploy
-    # [Warning]: OpenGrok can not be well executed from other location.
-    # ln -sf "`pwd`"/OpenGrok ${commInstdir}/bin/openGrok
+    # default deploy OpenGrok using python tools
+    pythonDeployOpenGrok $untarName
+    # only ready bash script OpenGrok, not use it to 'deploy'
+    bashDeployOpenGrok $untarName
 
     # fix one warning
     $execPrefix mkdir -p ${opengrokInstanceBase}/{src,data,etc}
-    $execPrefix cp -f ../doc/logging.properties \
+    $execPrefix cp -f $downloadPath/$untarName/doc/logging.properties \
                  ${opengrokInstanceBase}/logging.properties
     # mkdir opengrok SRC_ROOT if not exist
     $execPrefix mkdir -p $opengrokSrcRoot
@@ -473,29 +472,177 @@ _EOF
         $execPrefix chown -R $srcRootUser $opengrokSrcRoot
         $execPrefix chown -R $srcRootUser $opengrokInstanceBase
     fi
+
+    # generating index
+    callIndexer $untarName
+}
+
+# callIndexer <untarName>
+callIndexer() {
+    cat << "_EOF"
+------------------------------------------------------
+Generating Index using Python Tools
+------------------------------------------------------
+_EOF
+    untarName=$1
+    # $mainWd/downloads/opengrok-1.1-rc74
+    opengropPath=$downloadPath/$untarName
+    opengrokIndexPath=/usr/local/bin/opengrok-indexer
+
+    # Example:
+    # opengrok-indexer -C \
+    #     -J=-Djava.util.logging.config.file=/opt/opengrok/logging.properties \
+    #     -a /Users/corsair/myGit/let-opengrok/downloads/opengrok-1.1-rc74/lib/opengrok.jar -- \
+    #     -s /opt/o-source -d /opt/opengrok/data -H -P -S -G \
+    #     -W /opt/opengrok/etc/configuration.xml
+
+    propertyFile=$opengrokInstanceBase/logging.properties
+    callIndexerCommand=$(echo $opengrokIndexPath -C -J=-Djava.util.logging.config.file=$propertyFile \
+        -a $opengropPath/lib/opengrok.jar -- \
+        -s $opengrokSrcRoot \
+        -d $opengrokInstanceBase/data -H -P -S -G \
+        -W $opengrokInstanceBase/etc/configuration.xml)
+
+    # save indexer command into a shell
+    makeIndexerFile $callIndexerCommand
+
+    # opengrok-indexer will generate opengrok0.0.log, leaving them into log directory
+    cd $loggingPath
+    # $opengrokIndexPath -C -J=-Djava.util.logging.config.file=$propertyFile \
+    #     -a $opengropPath/lib/opengrok.jar -- \
+    #     -s $opengrokSrcRoot \
+    #     -d $opengrokInstanceBase/data -H -P -S -G \
+    #     -W $opengrokInstanceBase/etc/configuration.xml
+    $callIndexerCommand
+
+    if [[ $? != 0 ]]; then
+        echo Generating index failed
+        exit 1
+    fi
+}
+
+# save indexer command into a shell
+makeIndexerFile() {
+    cat << "_EOF"
+------------------------------------------------------
+Making OpenGrok Indexer File
+------------------------------------------------------
+_EOF
+    # $callIndexerCommand was set in func: installOpenGrok
+    cat << _EOF > $callIndexerFilePath
+set -x
+cd $loggingPath
+$callIndexerCommand
+# restart web-server
+_EOF
+    chmod +x $callIndexerFilePath
+}
+
+# pythonDeployBinPath <untarName>
+pythonDeployOpenGrok() {
+    cat << "_EOF"
+------------------------------------------------------
+Deploy OpenGrok using Python Tools -- New Method
+------------------------------------------------------
+_EOF
+    untarName=$1
+    # $mainWd/downloads/opengrok-1.1-rc74
+    opengropPath=$downloadPath/$untarName
+    # check python3 env
+    python3Path=`which python3 2> /dev/null`
+    opengrokDeployPath=`which opengrok-deploy 2> /dev/null`
+    if [[ "$opengrokDeployPath" == "" ]]; then
+        if [[ "python3Path" == "" ]]; then
+    cat << "_EOF"
+No python3 installed, exit now
+--- try
+yum install python3
+apt-get install python3
+brew install python3
+---
+_EOF
+            exit 255
+        fi
+        # install python tools first
+        cd $opengropPath
+        cd tools
+        python3 -m pip install opengrok-tools.tar.gz
+        # python3 -m pip uninstall opengrok-tools
+        if [[ $? != 0 ]]; then
+            echo install python tools failed
+            return
+        fi
+    fi
+
+    # deploy OpenGrok
+    if [[ "$isSourceWarDeployed" == "true" ]]; then
+        return
+    fi
+    pythonDeployBinPath=/usr/local/bin/opengrok-deploy
+    configPath=$opengrokInstanceBase/etc/configuration.xml
+
+    # sudo opengrok-deploy -c /opt/opengrok/etc/configuration.xml \
+    #     downloads/opengrok-1.1-rc74/lib/source.war \
+    #     /usr/local/Cellar/tomcat/9.0.8/libexec/webapps
+    $execPrefix $pythonDeployBinPath -c $configPath \
+        $opengropPath/lib/source.war $tomcatInstDir/webapps
+
+    if [[ $? != 0 ]]; then
+        echo Deploy OpenGrok using Python Tools failed
+        echo Jump to Deploy OpenGrok using Bash Script
+        bashDeployOpenGrok
+    fi
+}
+
+# bashDeployOpenGrok <untarName>
+bashDeployOpenGrok() {
+    cat << "_EOF"
+------------------------------------------------------
+Deploy OpenGrok using Bash Script -- Legacy Method
+------------------------------------------------------
+_EOF
+    untarName=$1
+    opengropPath=$downloadPath/$untarName
+
+    cd $opengropPath/tools
+    # add write privilege to OpenGrok - the script
+    chmod +x OpenGrok
+    # add 'source command' on top of 'OpenGrok'
+    # delete previous added 'source command' first
+    # be careful for double quotation marks
+    sed -i '/^source.*env$/d' OpenGrok 2> /dev/null
+    sed -i "2a source ${mainWd}/${dynamicEnvName}" OpenGrok
+
+#    # deploy OpenGrok war to tomcat
+#    $execPrefix ./OpenGrok deploy
+#    # [Warning]: OpenGrok can not be well executed from other location.
+
+    if [[ $? != 0 ]]; then
+        echo failed at bashDeployOpenGrok
+    fi
 }
 
 installSummary() {
     cat > $summaryTxt << _EOF
 
----------------------------------------- SUMMARY ----
-universal ctags path = $uCtagsPath
-java path = $javaPath
+---------------------------------------- Summary ----
+Universal Ctags Path = $uCtagsPath
+Java Path = $javaPath
 _EOF
     if [[ $osType == "linux" ]]; then
         echo jsvc path = $jsvcPath >> $summaryTxt
     fi
     cat >> $summaryTxt << _EOF
-java home = $javaInstDir
-tomcat home = $tomcatInstDir
-opengrok instance base = $opengrokInstanceBase
-opengrok source root = $opengrokSrcRoot
-http://127.0.0.1:${newListenPort}/source
+Java Home = $javaInstDir
+Tomcat Home = $tomcatInstDir
+Opengrok Instance Base = $opengrokInstanceBase
+Opengrok Source Root = $opengrokSrcRoot
+Browser Site: http://127.0.0.1:${newListenPort}/source
 _EOF
     cat >> $summaryTxt << _EOF
---------------------------------------------- OpenGrok Path -------
-$openGrokBinPath
--------------------------------------------------------------------
+---------------------------------------- Indexer ----
+$callIndexerFilePath
+-----------------------------------------------------
 _EOF
     cat $summaryTxt
 }
@@ -610,13 +757,24 @@ preInstallForMac() {
     # brew cask remove caskroom/versions/java8
     if [[ ! -f $mRunFlagFile ]]; then
         brew cask install caskroom/versions/java8
-        brew install tomcat
+        # check if java was successfully installed
+        if [[ $? != 0 ]]; then
+            cat << _EOF
+If your Java application still asks for JRE installation, you might need
+to reboot or logout/login.
+_EOF
+            exit 255
+        fi
+        brew install tomcat python3
+        # pip install --upgrade pip
+        pip3 install --upgrade pip
         touch $mRunFlagFile
     fi
+
     javaInstDir=$(/usr/libexec/java_home -v 1.8)
     javaPath=`which java 2> /dev/null`
     tomcatInstPDir=/usr/local/Cellar/tomcat
-    instVersion=`cd $tomcatInstPDir&& ls `
+    instVersion=`cd $tomcatInstPDir&& ls`
     # such as /usr/local/Cellar/tomcat/9.0.8
     tomcatInstDir=$tomcatInstPDir/$instVersion/libexec
     serverXmlPath=${tomcatInstDir}/conf/server.xml

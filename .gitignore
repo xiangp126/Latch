@@ -12,4 +12,6 @@ downloads/
 log/
 jdk-*.tar.gz
 rsync.config
+opengrok*.log
+callIndexer
 !template/rsync.config

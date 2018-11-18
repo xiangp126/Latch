@@ -1,16 +1,23 @@
 ### Illustrate
-- This project aims to deploy _**OpenGrok**_ on Unix-like as easy as possible
+- This project aims to deploy _**OpenGrok**_ easy and eased
 - Imcremental installation and subsequential handling all in one
-- serveral packages and scripts provided
+- Using python tools~~(legacy bash)~~ to **deploy** and **generate index** along with `OpenGrok`'s update
+- Provide serveral handy scripts and packages
+
+
+- <https://github.com/oracle/opengrok/wiki/Python-scripts-transition-guide>
+
+[Python-scripts-transition-guide](https://github.com/oracle/opengrok/wiki/Python-scripts-transition-guide)
+
 
 Package | Version | Repo | Comment
 :---: |:---: | :---: | ---
 Universal ctags | latest | [Universal-Ctags](https://github.com/universal-ctags/ctags) | source compile
-Java | 8u172 | [Jdk-Splits](./packages/jdk-splits) | using [split and cat](https://github.com/xiangp126/split-and-cat)
+Java | 8u172 | [Jdk-Splits](./packages/jdk-splits) | private [split and cat](https://github.com/xiangp126/split-and-cat)
 Tomcat | 8.5.31 | [Packages](./packages) | local binary
-OpenGrok | 1.1-rc33 | [OpenGrok](https://github.com/oracle/opengrok) | official binary
+OpenGrok | 1.1-rc74 | [OpenGrok](https://github.com/oracle/opengrok) | official binary
 - Take my [Giggle](http://giggle.ddns.net:8080/source) as example and refer [Guide](./gif/guide.gif) 
-- Support *Mac OS* since `tag 2.9`
+- Support *Mac OS* since tag `v2.9`
 
 > Latest released version: 3.0
 
@@ -50,8 +57,8 @@ sh oneKey.sh
 ```bash
 sh oneKey.sh install
 ```
-> Take you server address as 127.0.0.1 for example<br>
-> Put your source code into `OPENGROK_SRC_ROOT` as per directory
+> take you server address as `127.0.0.1` for example<br>
+> put your source code into `OPENGROK_SRC_ROOT`, **per code per directory**
 
 ```bash
 ./OpenGrok index
