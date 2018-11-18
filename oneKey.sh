@@ -91,7 +91,7 @@ installuCtags() {
     fi
     cat << "_EOF"
 ------------------------------------------------------
-INSTALLING UNIVERSAL CTAGS
+Installing Universal Ctags
 ------------------------------------------------------
 _EOF
     cd $downloadPath
@@ -136,7 +136,7 @@ _EOF
 reAssembleJDK() {
     cat << "_EOF"
 ------------------------------------------------------
-REASSEMBLE JDK USING LINUX SPLIT/CAT
+Re-assemble Jdk Using Linux split & cat
 ------------------------------------------------------
 _EOF
     jdkSliceDir=$mainWd/packages/jdk-splits
@@ -156,7 +156,7 @@ _EOF
     fi
     cat << "_EOF"
 ------------------------------------------------------
-CHECKING THE SHASUM OF JDK
+Checking the Shasum of Jdk
 ------------------------------------------------------
 _EOF
     shasumPath=`which sha256sum 2> /dev/null`
@@ -179,7 +179,7 @@ _EOF
 installJava8() {
     cat << "_EOF"
 ------------------------------------------------------
-INSTALLING JAVA 8
+Installing Java version 8
 ------------------------------------------------------
 _EOF
     javaPath=$javaInstDir/bin/java
@@ -229,7 +229,7 @@ changeListenPort() {
         newListenPort=$1
         cat << _EOF
 ------------------------------------------------------
-CHANGING DEFAULT LISTEN PORT 8080 TO $newListenPort
+Changing Default Listen Port 8080 to $newListenPort
 ------------------------------------------------------
 _EOF
         $execPrefix sed -i --regexp-extended \
@@ -246,7 +246,7 @@ _EOF
 installTomcat8() {
     cat << "_EOF"
 ------------------------------------------------------
-INSTALLING TOMCAT 8
+Installing Tomcat version 8
 ------------------------------------------------------
 _EOF
     # check, if jsvc already compiled, return
@@ -325,7 +325,7 @@ _EOF
     fi
     cat << _EOF
 ------------------------------------------------------
-START TO COMPILING JSVC
+Start to Compiling Jsvc
 ------------------------------------------------------
 _EOF
     $execPrefix chmod 755 $tomcatInstDir/bin
@@ -374,7 +374,7 @@ _EOF
 makeDynEnv() {
     cat << _EOF
 ------------------------------------------------------
-MAKEING DYNAMIC ENVIRONMENT FILE FOR SOURCE
+Making Dynamic Environment File for Sourcing
 ------------------------------------------------------
 _EOF
     cd $mainWd
@@ -409,11 +409,11 @@ _EOF
     chmod +x $dynamicEnvName
 }
 
-# deploy OpenGrok
+# install OpenGrok
 installOpenGrok() {
     cat << "_EOF"
 ------------------------------------------------------
-INSTALLING OPENGROK
+Installing OpenGrok
 ------------------------------------------------------
 _EOF
     wgetVersion=$OpenGrokVersion
@@ -487,7 +487,12 @@ _EOF
     untarName=$1
     # $mainWd/downloads/opengrok-1.1-rc74
     opengropPath=$downloadPath/$untarName
-    opengrokIndexPath=/usr/local/bin/opengrok-indexer
+    # /usr/local/bin/opengrok-indexer
+    opengrokIndexPath=`which opengrok-indexer 2> /dev/null`
+    if [[ "$opengrokIndexPath" == "" ]]; then
+        echo No opengrok-indexer found, exit now
+        exit 5
+    fi
 
     # Example:
     # opengrok-indexer -C \
@@ -498,6 +503,7 @@ _EOF
 
     propertyFile=$opengrokInstanceBase/logging.properties
     callIndexerCommand=$(echo $opengrokIndexPath -C -J=-Djava.util.logging.config.file=$propertyFile \
+        -j $javaPath \
         -a $opengropPath/lib/opengrok.jar -- \
         -s $opengrokSrcRoot \
         -d $opengrokInstanceBase/data -H -P -S -G \
@@ -523,17 +529,12 @@ _EOF
 
 # save indexer command into a shell
 makeIndexerFile() {
-    cat << "_EOF"
-------------------------------------------------------
-Making OpenGrok Indexer File
-------------------------------------------------------
-_EOF
     # $callIndexerCommand was set in func: installOpenGrok
     cat << _EOF > $callIndexerFilePath
 set -x
 cd $loggingPath
 $callIndexerCommand
-# restart web-server
+echo you may need restart web server
 _EOF
     chmod +x $callIndexerFilePath
 }
@@ -542,35 +543,49 @@ _EOF
 pythonDeployOpenGrok() {
     cat << "_EOF"
 ------------------------------------------------------
-Deploy OpenGrok using Python Tools -- New Method
+Deploy OpenGrok Using Python Tools -- New Method
 ------------------------------------------------------
 _EOF
     untarName=$1
     # $mainWd/downloads/opengrok-1.1-rc74
     opengropPath=$downloadPath/$untarName
+
     # check python3 env
     python3Path=`which python3 2> /dev/null`
-    opengrokDeployPath=`which opengrok-deploy 2> /dev/null`
-    if [[ "$opengrokDeployPath" == "" ]]; then
+    pythonDeployBinPath=`which opengrok-deploy 2> /dev/null`
+    if [[ "$pythonDeployBinPath" == "" ]]; then
         if [[ "python3Path" == "" ]]; then
     cat << "_EOF"
 No python3 installed, exit now
 --- try
-yum install python3
-apt-get install python3
-brew install python3
+yum install python3 -y
+apt-get install python3 -y
+brew install python3 -y
 ---
 _EOF
             exit 255
         fi
-        # install python tools first
+
+        # check pip env
+        pipPath=`which pip 2>/dev/null`
+        if [[ "$pipPath" == "" ]]; then
+            # install pip
+            curl https://bootstrap.pypa.io/get-pip.py | sudo python3
+            if [[ $? != 0 ]]; then
+                echo install pip failed
+                echo apt-get install python3-pip
+                exit 3
+            fi
+        fi
+
+        # install python tools
         cd $opengropPath
         cd tools
-        python3 -m pip install opengrok-tools.tar.gz
+        $execPrefix python3 -m pip install opengrok-tools.tar.gz
         # python3 -m pip uninstall opengrok-tools
         if [[ $? != 0 ]]; then
             echo install python tools failed
-            return
+            exit 2
         fi
     fi
 
@@ -578,7 +593,7 @@ _EOF
     if [[ "$isSourceWarDeployed" == "true" ]]; then
         return
     fi
-    pythonDeployBinPath=/usr/local/bin/opengrok-deploy
+    pythonDeployBinPath=`which opengrok-deploy 2> /dev/null`
     configPath=$opengrokInstanceBase/etc/configuration.xml
 
     # sudo opengrok-deploy -c /opt/opengrok/etc/configuration.xml \
@@ -598,7 +613,7 @@ _EOF
 bashDeployOpenGrok() {
     cat << "_EOF"
 ------------------------------------------------------
-Deploy OpenGrok using Bash Script -- Legacy Method
+Get Legacy OpenGrok Bash Script
 ------------------------------------------------------
 _EOF
     untarName=$1
@@ -698,7 +713,7 @@ tackleWebService() {
     cd $mainWd
     cat << _EOF
 --------------------------------------------------------
-STOP TOMCAT WEB SERVICE
+Stop Tomcat Web Service
 --------------------------------------------------------
 _EOF
     if [[ $osType == "mac" ]]; then
@@ -754,6 +769,11 @@ _EOF
 }
 
 preInstallForMac() {
+    cat << _EOF
+--------------------------------------------------------
+Pre-Install for Mac
+--------------------------------------------------------
+_EOF
     # brew cask remove caskroom/versions/java8
     if [[ ! -f $mRunFlagFile ]]; then
         brew cask install caskroom/versions/java8
@@ -784,6 +804,7 @@ _EOF
 
 install() {
     mkdir -p $downloadPath
+    mkdir -p $loggingPath
     osName=`uname -s 2> /dev/null`
     if [[ "$osName" == "Darwin" ]]; then
         # os type is Mac OS
