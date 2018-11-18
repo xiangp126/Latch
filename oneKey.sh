@@ -481,7 +481,7 @@ _EOF
 callIndexer() {
     cat << "_EOF"
 ------------------------------------------------------
-Generating Index using Python Tools
+Prepare to Call Indexer
 ------------------------------------------------------
 _EOF
     untarName=$1
@@ -502,7 +502,8 @@ _EOF
     #     -W /opt/opengrok/etc/configuration.xml
 
     propertyFile=$opengrokInstanceBase/logging.properties
-    callIndexerCommand=$(echo $opengrokIndexPath -C -J=-Djava.util.logging.config.file=$propertyFile \
+    callIndexerCommand=$(echo $opengrokIndexPath -C \
+        -J=-Djava.util.logging.config.file=$propertyFile \
         -j $javaPath \
         -a $opengropPath/lib/opengrok.jar -- \
         -s $opengrokSrcRoot \
@@ -519,6 +520,12 @@ _EOF
     #     -s $opengrokSrcRoot \
     #     -d $opengrokInstanceBase/data -H -P -S -G \
     #     -W $opengrokInstanceBase/etc/configuration.xml
+
+    cat << "_EOF"
+------------------------------------------------------
+Generating Index using Python Tools
+------------------------------------------------------
+_EOF
     $callIndexerCommand
 
     if [[ $? != 0 ]]; then
@@ -527,14 +534,20 @@ _EOF
     fi
 }
 
-# save indexer command into a shell
+# save indexer commands into a shell
 makeIndexerFile() {
+    cat << "_EOF"
+------------------------------------------------------
+Saving Indexer Commands into Bash Script
+------------------------------------------------------
+_EOF
     # $callIndexerCommand was set in func: installOpenGrok
     cat << _EOF > $callIndexerFilePath
+#/bin/bash
 set -x
 cd $loggingPath
 $callIndexerCommand
-echo you may need restart web server
+echo you may need to restart the web server
 _EOF
     chmod +x $callIndexerFilePath
 }
