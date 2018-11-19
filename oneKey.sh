@@ -1,7 +1,7 @@
 #!/bin/bash
-# From which path it was executed
+# from which path it was executed
 startDir=`pwd`
-# Absolute path of this shell, no impact by start dir
+# absolute path of this shell, not influenced by start dir
 mainWd=$(cd $(dirname $0); pwd)
 # common install directory
 rootInstDir=/opt
@@ -547,7 +547,6 @@ _EOF
 set -x
 cd $loggingPath
 $callIndexerCommand
-echo you may need to restart the web server
 _EOF
     chmod +x $callIndexerFilePath
 }

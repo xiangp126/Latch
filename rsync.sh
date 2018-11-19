@@ -1,17 +1,14 @@
 #!/bin/bash
-# From which path it was executed
-
 # Open Debug
 set -x
-
 startDir=`pwd`
-# Absolute path of this shell, no impact by start dir
+# absolute path of this shell, not influenced by start dir
 mainWd=$(cd $(dirname $0); pwd)
-logDir=$mainWd/log
-logFile=$logDir/rsync.log
+loggingPath=$mainWd/log
+logFile=$loggingPath/rsync.log
 rsyncConfig=$mainWd/rsync.config
 # empty or root
-execPrefix=""
+# execPrefix=""
 
 PATH=$HOME/.usr/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
 if [[ ! -f $rsyncConfig ]]; then
@@ -26,14 +23,19 @@ fi
 dynamicEnvPath=$mainWd/dynamic.env
 source $dynamicEnvPath
 
-if [[ ! -d $logDir ]]; then
-    mkdir -p $logDir
+if [[ ! -d $loggingPath ]]; then
+    mkdir -p $loggingPath
 fi
 
+# rcync source codes for indexing with remote server
 source $rsyncConfig
-
 cd $OPENGROK_SRC_ROOT
 rsync -azP "-e ssh -p ${SSHPORT}" ${SSHUSER}@${SERVER}:${SRCDIR_ON_SERVER}/ .
+if [[ $? != 0 ]]; then
+    echo rsync with remote server failed
+    exit 3
+fi
 
-cd $logDir
-$execPrefix $OPENGROK_BIN_PATH index
+# call indexer
+cd $mainWd
+./callIndexer

@@ -1,13 +1,13 @@
 #!/bin/bash
-# From which path it was executed
+# from which path it was executed
 startDir=`pwd`
-# Absolute path of this shell, no impact by start dir
+# absolute path of this shell, not influenced by start dir
 mainWd=$(cd $(dirname $0); pwd)
-logDir=$mainWd/log
-logFile=$logDir/crontab.log
+loggingPath=$mainWd/log
+logFile=$loggingPath/crontab.log
 crontabFile=$mainWd/crontab.txt
-updateShellPath=$mainWd/autopull.sh
-# updateShellPath=$mainWd/rsync.sh
+# updateShellPath=$mainWd/autopull.sh
+updateShellPath=$mainWd/rsync.sh
 execPrefix=sudo
 
 if [[ ! -f $updateShellPath ]]; then
@@ -31,12 +31,12 @@ fi
 # 04 20 * * * $updateShellPath &> $logFile
 
 # Create log directory if not exist
-if [[ ! -d $logDir ]]; then
-    mkdir -p $logDir
+if [[ ! -d $loggingPath ]]; then
+    mkdir -p $loggingPath
 fi
 # Generate crontab file
 cat << _EOF > $crontabFile
-04 20 * * * $updateShellPath &> $logFile
+20 10 * * * $updateShellPath &> $logFile
 _EOF
 
 # Add into cron

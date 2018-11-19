@@ -1,13 +1,9 @@
 #!/bin/bash
-# From which path it was executed
-
-# Open Debug
 set -x
-
 startDir=`pwd`
-# Absolute path of this shell, no impact by start dir
+# absolute path of this shell, not influenced by start dir
 mainWd=$(cd $(dirname $0); pwd)
-logDir=$mainWd/log
+loggingPath=$mainWd/log
 # empty or root
 execPrefix=""
 
@@ -32,8 +28,10 @@ for repo in ${updateDir[@]}; do
 done
 
 # Update OpenGrok index
-if [[ ! -d $logDir ]]; then
-    mkdir -p $logDir
+if [[ ! -d $loggingPath ]]; then
+    mkdir -p $loggingPath
 fi
-cd $logDir
-$execPrefix $OPENGROK_BIN_PATH index
+
+# call indexer
+cd $mainWd
+./callIndexer
