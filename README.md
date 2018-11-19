@@ -1,6 +1,7 @@
 ### Illustrate
 - This project aims to deploy **OpenGrok** easily and quickly
-- Using python tools instead of legacy bash scripts along with `OpenGrok`'s update
+- Add manually deploy method, preferred than `wrapper`
+- [Optional] python tools instead of legacy bash scripts along with `OpenGrok`'s update
 - Imcremental installation and subsequential handling all in `oneKey`
 - Provide serveral handy scripts and packages
 - Support `Mac` since tag `v2.9`
@@ -235,9 +236,15 @@ _execute it_
 ```bash
 sh addcron.sh
 ```
+    
+### Intelligence Window
 
-### Notice
+hover over the item with mouse and press key `1` to launch `Intelligence Window`
+
+press key `2` to **highlight or unhighlight** the item
+
+### Attention
     If you use EZ-Zoom on Chrome with OpenGrok, make sure it's 100% or OpenGrok will jump to the wrong line
-
+    
 ### License
 The [MIT](./LICENSE.txt) License (MIT)

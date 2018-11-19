@@ -409,7 +409,6 @@ _EOF
     chmod +x $dynamicEnvName
 }
 
-# install OpenGrok
 installOpenGrok() {
     cat << "_EOF"
 ------------------------------------------------------
@@ -426,7 +425,7 @@ _EOF
     $execPrefix ls -l $sourceWarPath 2> /dev/null
     if [[ $? == 0 ]]; then
         echo "[Warning]: already has source.war deployed, skip"
-        isSourceWarDeployed=true
+        # isSourceWarDeployed=true
     fi
 
     cd $downloadPath
@@ -456,10 +455,15 @@ _EOF
     # call func makeDynEnv -- for legacy bash OpenGrok
     makeDynEnv
 
-    # default deploy OpenGrok using python tools
-    pythonDeployOpenGrok $untarName
-    # only ready bash script OpenGrok, not use it to 'deploy'
-    bashDeployOpenGrok $untarName
+    # build OpenGrok python tools -- optional
+    # buildPythonTools $untarName
+
+    # deployOpenGrok <untarName> <deployMethod>
+    # For Example: deployOpenGrok $untarName wrapper
+    deployOpenGrok $untarName manual
+
+    # build legacy OpenGrok binary tool
+    buildLegacyTool $untarName
 
     # fix one warning
     $execPrefix mkdir -p ${opengrokInstanceBase}/{src,data,etc}
@@ -502,16 +506,27 @@ _EOF
     #     -W /opt/opengrok/etc/configuration.xml
 
     propertyFile=$opengrokInstanceBase/logging.properties
-    callIndexerCommand=$(echo $opengrokIndexPath -C \
+    # The indexer can be run either using opengrok.jar directly:
+    javaIndexerCommand=$(echo $javaPath \
+        -Djava.util.logging.config.file=$propertyFile \
+        -jar $opengropPath/lib/opengrok.jar \
+        -c $uCtagsPath \
+        -s $opengrokSrcRoot \
+        -d $opengrokInstanceBase/data -H -P -S -G \
+        -W $opengrokInstanceBase/etc/configuration.xml)
+
+    # or using the opengrok-indexer wrapper like so:
+    wrapperIndexerCommand=$(echo $opengrokIndexPath \
         -J=-Djava.util.logging.config.file=$propertyFile \
         -j $javaPath \
         -a $opengropPath/lib/opengrok.jar -- \
+        -c $uCtagsPath \
         -s $opengrokSrcRoot \
         -d $opengrokInstanceBase/data -H -P -S -G \
         -W $opengrokInstanceBase/etc/configuration.xml)
 
     # save indexer command into a shell
-    makeIndexerFile $callIndexerCommand
+    makeIndexerFile $wrapperIndexerCommand
 
     # opengrok-indexer will generate opengrok0.0.log, leaving them into log directory
     cd $loggingPath
@@ -523,10 +538,10 @@ _EOF
 
     cat << "_EOF"
 ------------------------------------------------------
-Generating Index using Python Tools
+Generating Index using Java/Python Tools
 ------------------------------------------------------
 _EOF
-    $callIndexerCommand
+    $wrapperIndexerCommand
 
     if [[ $? != 0 ]]; then
         echo Generating index failed
@@ -541,21 +556,99 @@ makeIndexerFile() {
 Saving Indexer Commands into Bash Script
 ------------------------------------------------------
 _EOF
-    # $callIndexerCommand was set in func: installOpenGrok
+    # $wrapperIndexerCommand was set in func: installOpenGrok
     cat << _EOF > $callIndexerFilePath
 #/bin/bash
 set -x
 cd $loggingPath
-$callIndexerCommand
+# The indexer can be run either using opengrok.jar directly:
+$javaIndexerCommand
+# or using the opengrok-indexer wrapper like so:
+# $wrapperIndexerCommand
 _EOF
     chmod +x $callIndexerFilePath
 }
 
-# pythonDeployBinPath <untarName>
-pythonDeployOpenGrok() {
+# deployOpenGrok <untarName>
+deployOpenGrok() {
     cat << "_EOF"
 ------------------------------------------------------
-Deploy OpenGrok Using Python Tools -- New Method
+Deploy OpenGrok Without Any Other Tools
+------------------------------------------------------
+_EOF
+    if [[ "$isSourceWarDeployed" == "true" ]]; then
+        return
+    fi
+
+    # 'wrapper' or 'manual', default is 'manual'
+    if [[ "$2" == "" ]]; then
+        deployMethod=manual
+    else
+        deployMethod=$2
+    fi
+    if [[ "$deployMethod" == "wrapper" ]]; then
+        # deploy OpenGrok using opengrok-deploy
+        pythonDeployBinPath=`which opengrok-deploy 2> /dev/null`
+        configPath=$opengrokInstanceBase/etc/configuration.xml
+
+        # Example:
+        # sudo opengrok-deploy -c /opt/opengrok/etc/configuration.xml \
+        #         downloads/opengrok-1.1-rc74/lib/source.war \
+        #         /usr/local/Cellar/tomcat/9.0.12/libexec/webapps
+        $execPrefix $pythonDeployBinPath -c $configPath \
+                $opengropPath/lib/source.war $tomcatInstDir/webapps
+        if [[ $? != 0 ]]; then
+            echo deploy OpenGrok using wrapper failed
+            exit 5
+        fi
+    else
+        # deploy OpenGrok manually, without any tools
+        untarName=$1
+        warPrefix=source
+        # $mainWd/downloads/opengrok-1.1-rc74
+        opengropPath=$downloadPath/$untarName
+        warPath=$opengropPath/lib/$warPrefix.war
+        webappsDir=$tomcatInstDir/webapps
+        webXmlName=web.xml
+        webXmlDir=$tomcatInstDir/$warPrefix/WEB-INF
+        webXmlPath=$webXmlDir/$webXmlName
+
+        # copy source.war to tomcat webapps
+        cp $warPath $webappsDir
+        if [[ $? != 0 ]]; then
+            echo copy $warPrefix.war to tomcat failed
+            exit 5
+        fi
+
+        # If user does not use default OPENGROK_INSTANCE_BASE then attempt to
+        # extract WEB-INF/web.xml from source.war using jar or zip utility, update
+        # the hardcoded values and then update source.war with the new
+        # WEB-INF/web.xml.
+        if [[ "$opengrokInstanceBase" != "/var/opengrok" ]]; then
+            cd $webappsDir
+            mkdir $warPrefix
+            tar -xvf $warPrefix.war -C $warPrefix
+            cd $warPrefix/WEB-INF
+            configXmlPath=$opengrokInstanceBase/etc/configuration.xml
+            sed -e 's:/var/opengrok/etc/configuration.xml:'"$configXmlPath"':g' \
+                $webXmlName > $webXmlName.tmp
+            mv $webXmlName.tmp $webXmlName
+            cd $webappsDir
+            tar -zcvf $warPrefix.war $warPrefix
+        fi
+
+        if [[ $? != 0 ]]; then
+            echo deploy OpenGrok manually, without any tools failed
+            exit 6
+        fi
+    fi
+}
+
+# buildPythonTools <untarName>
+buildPythonTools() {
+    cat << "_EOF"
+------------------------------------------------------
+Building OpenGrok Python Tools -- New Method
 ------------------------------------------------------
 _EOF
     untarName=$1
@@ -596,36 +689,17 @@ _EOF
         $execPrefix python3 -m pip install opengrok-tools.tar.gz
         # python3 -m pip uninstall opengrok-tools
         if [[ $? != 0 ]]; then
-            echo install python tools failed
+            echo install OpenGrok python tools failed
             exit 2
         fi
     fi
-
-    # deploy OpenGrok
-    if [[ "$isSourceWarDeployed" == "true" ]]; then
-        return
-    fi
-    pythonDeployBinPath=`which opengrok-deploy 2> /dev/null`
-    configPath=$opengrokInstanceBase/etc/configuration.xml
-
-    # sudo opengrok-deploy -c /opt/opengrok/etc/configuration.xml \
-    #     downloads/opengrok-1.1-rc74/lib/source.war \
-    #     /usr/local/Cellar/tomcat/9.0.8/libexec/webapps
-    $execPrefix $pythonDeployBinPath -c $configPath \
-        $opengropPath/lib/source.war $tomcatInstDir/webapps
-
-    if [[ $? != 0 ]]; then
-        echo Deploy OpenGrok using Python Tools failed
-        echo Jump to Deploy OpenGrok using Bash Script
-        bashDeployOpenGrok
-    fi
 }
 
-# bashDeployOpenGrok <untarName>
-bashDeployOpenGrok() {
+# buildLegacyTool <untarName>
+buildLegacyTool() {
     cat << "_EOF"
 ------------------------------------------------------
-Get Legacy OpenGrok Bash Script
+Building Legacy OpenGrok Bash Script
 ------------------------------------------------------
 _EOF
     untarName=$1
@@ -645,7 +719,7 @@ _EOF
 #    # [Warning]: OpenGrok can not be well executed from other location.
 
     if [[ $? != 0 ]]; then
-        echo failed at bashDeployOpenGrok
+        echo failed at building legacy bash tool
     fi
 }
 
@@ -783,7 +857,7 @@ _EOF
 preInstallForMac() {
     cat << _EOF
 --------------------------------------------------------
-Pre-Install for Mac
+Pre Install for Mac
 --------------------------------------------------------
 _EOF
     # brew cask remove caskroom/versions/java8
