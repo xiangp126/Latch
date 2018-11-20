@@ -34,6 +34,10 @@ pktPath=$mainWd/packages
 loggingPath=$mainWd/log
 callIndexerFilePath=$mainWd/callIndexer
 isSourceWarDeployed=false
+# macos | ubuntu | centos
+platOsType=macos
+# mac | linux
+platCategory=mac
 # OpenGrok info globally marked here
 OpenGrokVersion=1.1-rc74
 OpenGrokTarName=opengrok-$OpenGrokVersion.tar.gz
@@ -56,27 +60,71 @@ usage() {
     exeName=${0##*/}
     cat << _EOF
 [NAME]
-    sh $exeName -- setup OpenGrok through one key stroke
+    sh $exeName -- setup OpenGrok through one key press
 
 [SYNOPSIS]
-    sh $exeName [install | summary | help] [PORT]
+    sh $exeName [install | wrapper | summary | help] [PORT]
 
 [EXAMPLE]
-    sh $exeName [help]
     sh $exeName install
     sh $exeName install 8081
+    sh $exeName wrapper
+    sh $exeName wrapper 8081
+    sh $exeName [help]
     sh $exeName summary
 
 [DESCRIPTION]
-    install -> install opengrok, need root privilege but no sudo prefix
-    help    -> print help page
-    summary -> print tomcat/opengrok guide and installation info
+    install -> instlal OpenGrok using manual deploy method
+    wrapper -> install OpenGrok using python wrapper
+    summary -> print tomcat/OpenGrok guide and installation info
+    help -> print help page
+--
+    'wrapper' and 'install' mode only differs in OpenGrok deploy method
 
 [TIPS]
+    run script needs root privilege but no sudo prefix
     default listen-port is $newListenPort if [PORT] was omitted
 
 _EOF
     logo
+}
+
+# support mac | centos | ubuntu
+checkPlatOsType() {
+    arch=$(uname -s)
+    case $arch in
+        Darwin)
+            # echo "Platform is MacOS"
+            platOsType=macos
+            ;;
+        Linux)
+            linuxType=`sed -n '1p' /etc/issue | tr -s " " | cut -d " " -f 1`
+            if [[ "$linuxType" == "Ubuntu" ]]; then
+                # echo "Platform is Ubuntu"
+                platOsType=ubuntu
+            elif [[ "$linuxType" == "CentOS" || "$linuxType" == "\S" ]]; then
+                # echo "Platform is CentOS" \S => CentOS 7
+                platOsType=centos
+            elif [[ $linuxType == "Red" ]]; then
+                # echo "Platform is Red Hat"
+                platOsType=centos
+            elif [[ $linuxType == "Raspbian" ]]; then
+                # echo "Platform is Raspbian"
+                platOsType=ubuntu
+            else
+                echo "Sorry, We did not support your platform, pls check it first"
+                exit
+            fi
+            ;;
+        *)
+            cat << "_EOF"
+------------------------------------------------------
+We Only Support Linux And Mac So Far
+------------------------------------------------------
+_EOF
+            exit
+            ;;
+    esac
 }
 
 installuCtags() {
@@ -457,11 +505,12 @@ _EOF
     makeDynEnv
 
     # build OpenGrok python tools -- optional
-    # buildPythonTools
+    if [[ "$OpenGrokDeployMethod" == "wrapper" ]]; then
+        buildPythonTools
+    fi
 
-    # deployOpenGrok <OpenGrokUntarName> <deployMethod>
-    # For Example: deployOpenGrok $OpenGrokUntarName wrapper
-    deployOpenGrok manual
+    # OpenGrokDeployMethod: [wrapper | manual]
+    deployOpenGrok
 
     # fix one warning
     $execPrefix mkdir -p ${opengrokInstanceBase}/{src,data,etc}
@@ -554,8 +603,13 @@ set -x
 cd $loggingPath
 # The indexer can be run either using opengrok.jar directly:
 $javaIndexerCommand
+_EOF
+    if [[ "$OpenGrokDeployMethod" == "wrapper" ]]; then
+        cat << _EOF >> $callIndexerFilePath
 # or using the opengrok-indexer wrapper like so:
 # $wrapperIndexerCommand
+_EOF
+    fi
 _EOF
     chmod +x $callIndexerFilePath
 }
@@ -571,13 +625,7 @@ _EOF
         return
     fi
 
-    # 'wrapper' or 'manual', default is 'manual'
-    if [[ "$2" == "" ]]; then
-        deployMethod=manual
-    else
-        deployMethod=$1
-    fi
-    if [[ "$deployMethod" == "wrapper" ]]; then
+    if [[ "$OpenGrokDeployMethod" == "wrapper" ]]; then
         # deploy OpenGrok using opengrok-deploy
         pythonDeployBinPath=`which opengrok-deploy 2> /dev/null`
         configPath=$opengrokInstanceBase/etc/configuration.xml
@@ -648,15 +696,8 @@ _EOF
     pythonDeployBinPath=`which opengrok-deploy 2> /dev/null`
     if [[ "$pythonDeployBinPath" == "" ]]; then
         if [[ "python3Path" == "" ]]; then
-    cat << "_EOF"
-No python3 installed, return now
---- try
-yum install python3 -y
-apt-get install python3 -y
-brew install python3 -y
----
-_EOF
-            return
+            echo check your python3 env first
+            exit 12
         fi
 
         # check pip env
@@ -667,7 +708,7 @@ _EOF
             if [[ $? != 0 ]]; then
                 echo install pip failed
                 echo apt-get install python3-pip
-                return
+                exit
             fi
         fi
 
@@ -675,7 +716,7 @@ _EOF
         cd $opengropPath
         cd tools
         $execPrefix python3 -m pip install opengrok-tools.tar.gz
-        # python3 -m pip uninstall opengrok-tools
+        # sudo python3 -m pip uninstall opengrok-tools
         if [[ $? != 0 ]]; then
             echo install OpenGrok python tools failed
             exit 2
@@ -690,7 +731,7 @@ installSummary() {
 Universal Ctags Path = $uCtagsPath
 Java Path = $javaPath
 _EOF
-    if [[ $osType == "linux" ]]; then
+    if [[ $platCategory == "linux" ]]; then
         echo jsvc path = $jsvcPath >> $summaryTxt
     fi
     cat >> $summaryTxt << _EOF
@@ -709,7 +750,7 @@ _EOF
 }
 
 printSummary() {
-    if [[ $osType = "linux" ]]; then
+    if [[ $platCategory = "linux" ]]; then
         cat << _EOF
 -------------------------------------------------
 FOR TOMCAT 8 GUIDE
@@ -762,7 +803,7 @@ tackleWebService() {
 Stop Tomcat Web Service
 --------------------------------------------------------
 _EOF
-    if [[ $osType == "mac" ]]; then
+    if [[ $platCategory == "mac" ]]; then
         catalina stop 2> /dev/null
     else
         sudo ./daemon.sh stop
@@ -798,7 +839,7 @@ START TOMCAT WEB SERVICE
 --------------------------------------------------------
 _EOF
     sleep 1
-    if [[ $osType == "mac" ]]; then
+    if [[ $platCategory == "mac" ]]; then
         catalina start
     else
         # try some times to start tomcat web service
@@ -831,9 +872,7 @@ to reboot or logout/login.
 _EOF
             exit 255
         fi
-        brew install tomcat python3
-        # pip install --upgrade pip
-        pip3 install --upgrade pip
+        brew install tomcat
         touch $mRunFlagFile
     fi
 
@@ -851,21 +890,41 @@ _EOF
 install() {
     mkdir -p $downloadPath
     mkdir -p $loggingPath
-    osName=`uname -s 2> /dev/null`
-    if [[ "$osName" == "Darwin" ]]; then
-        # os type is Mac OS
-        osType=mac
+
+    # check platform OS type first
+    checkPlatOsType
+    if [[ "$platOsType" == "macos" ]]; then
+        # platform category is Mac
+        platCategory=mac
         preInstallForMac
+        if [[ "$OpenGrokDeployMethod" == "wrapper" ]]; then
+            if [[ ! -f $mRunFlagFile ]]; then
+                brew install python3
+                pip3 install --upgrade pip
+            fi
+        fi
         # $1 passed as new listen port
         changeListenPort $1
     else
-        # os type is Linux
-        osType=linux
+        # platform category is Linux
+        platCategory=linux
         reAssembleJDK
         installJava8
         # $1 passed as new listen port
         installTomcat8 $1
+        if [[ ! -f $mRunFlagFile ]]; then
+            if [[ "$platOsType" == "ubuntu" ]]; then
+                sudo apt-get install python3 -y
+            elif [[ "$platOsType" == "centos" ]]; then
+                sudo yum install python3 -y
+            fi
+        fi
     fi
+    if [[ ! -f $mRunFlagFile  ]]; then
+        touch $mRunFlagFile
+    fi
+
+    # common install part
     installuCtags
     installOpenGrok
     tackleWebService
@@ -875,6 +934,12 @@ install() {
 case $1 in
     'install')
         set -x
+        install $2
+        ;;
+
+    'wrapper')
+        set -x
+        OpenGrokDeployMethod=wrapper
         install $2
         ;;
 
