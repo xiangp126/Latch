@@ -610,7 +610,6 @@ _EOF
 # $wrapperIndexerCommand
 _EOF
     fi
-_EOF
     chmod +x $callIndexerFilePath
 }
 

@@ -261,12 +261,8 @@ hover over the item with mouse and press key `1` to launch `Intelligence Window`
 
 press key `2` to **highlight or unhighlight** the item
 
-### Attention
+### Notice
     If you use EZ-Zoom on Chrome with OpenGrok, make sure it's 100% or OpenGrok will jump to the wrong line
-
-### Reference
-- [Python-scripts-transition-guide](https://github.com/oracle/opengrok/wiki/Python-scripts-transition-guide)<br>
-- [How-to-setup-OpenGrok](https://github.com/oracle/opengrok/wiki/How-to-setup-OpenGrok)
 
 ### License
 The [MIT](./LICENSE.txt) License (MIT)
