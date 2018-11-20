@@ -34,7 +34,12 @@ pktPath=$mainWd/packages
 loggingPath=$mainWd/log
 callIndexerFilePath=$mainWd/callIndexer
 isSourceWarDeployed=false
+# OpenGrok info globally marked here
 OpenGrokVersion=1.1-rc74
+OpenGrokTarName=opengrok-$OpenGrokVersion.tar.gz
+OpenGrokUntarName=opengrok-$OpenGrokVersion
+# wrapper/manual -- default manual
+OpenGrokDeployMethod=manual
 
 logo() {
     cat << "_EOF"
@@ -68,7 +73,7 @@ usage() {
     summary -> print tomcat/opengrok guide and installation info
 
 [TIPS]
-    Default listen-port is $newListenPort if [PORT] was omitted
+    default listen-port is $newListenPort if [PORT] was omitted
 
 _EOF
     logo
@@ -410,64 +415,57 @@ _EOF
 }
 
 installOpenGrok() {
-    cat << "_EOF"
+    cat << _EOF
 ------------------------------------------------------
-Installing OpenGrok
+Installing OpenGrok Version $OpenGrokVersion
 ------------------------------------------------------
 _EOF
-    wgetVersion=$OpenGrokVersion
-    wgetLink=https://github.com/oracle/opengrok/releases/download/$wgetVersion
-    tarName=opengrok-$wgetVersion.tar.gz
-    untarName=opengrok-$wgetVersion
+    wgetLink=https://github.com/oracle/opengrok/releases/download/$OpenGrokVersion
+    # OpenGrokTarName=opengrok-$OpenGrokVersion.tar.gz
+    # OpenGrokUntarName=opengrok-$OpenGrokVersion
 
-    opengropPath=$downloadPath/$untarName
+    opengropPath=$downloadPath/$OpenGrokUntarName
     sourceWarPath=$tomcatInstDir/webapps/source.war
     $execPrefix ls -l $sourceWarPath 2> /dev/null
     if [[ $? == 0 ]]; then
         echo "[Warning]: already has source.war deployed, skip"
-        # isSourceWarDeployed=true
+        isSourceWarDeployed=true
     fi
 
     cd $downloadPath
-    # check if already has this tar ball.
-    if [[ -f $tarName ]]; then
+    # check if already has tar ball downloaded
+    if [[ -f $OpenGrokTarName ]]; then
         echo [Warning]: Tar Ball $tarName already exist
     else
         wget --no-cookies \
             --no-check-certificate \
             --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-            "${wgetLink}/${tarName}" \
-            -O $tarName
+            "${wgetLink}/${OpenGrokTarName}" \
+            -O $OpenGrokTarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
             echo "wget OpenGrok version $OpenGrokVersion failed"
-            exit 1
+            exit 10
         fi
     fi
 
-    if [[ ! -d $untarName ]]; then
-        tar -zxv -f $tarName
+    if [[ ! -d $OpenGrokUntarName ]]; then
+        tar -zxv -f $OpenGrokTarName
     fi
 
-    # will copy legacy bash OpenGrok script
-    openGrokBinPath=$opengropPath/tools/OpenGrok
-    cp -f $mainWd/template/OpenGrok $openGrokBinPath
     # call func makeDynEnv -- for legacy bash OpenGrok
     makeDynEnv
 
     # build OpenGrok python tools -- optional
-    # buildPythonTools $untarName
+    # buildPythonTools
 
-    # deployOpenGrok <untarName> <deployMethod>
-    # For Example: deployOpenGrok $untarName wrapper
-    deployOpenGrok $untarName manual
-
-    # build legacy OpenGrok binary tool
-    buildLegacyTool $untarName
+    # deployOpenGrok <OpenGrokUntarName> <deployMethod>
+    # For Example: deployOpenGrok $OpenGrokUntarName wrapper
+    deployOpenGrok manual
 
     # fix one warning
     $execPrefix mkdir -p ${opengrokInstanceBase}/{src,data,etc}
-    $execPrefix cp -f $downloadPath/$untarName/doc/logging.properties \
+    $execPrefix cp -f $downloadPath/$OpenGrokUntarName/doc/logging.properties \
                  ${opengrokInstanceBase}/logging.properties
     # mkdir opengrok SRC_ROOT if not exist
     $execPrefix mkdir -p $opengrokSrcRoot
@@ -478,24 +476,22 @@ _EOF
     fi
 
     # generating index
-    callIndexer $untarName
+    callIndexer
 }
 
-# callIndexer <untarName>
+# callIndexer <OpenGrokUntarName>
 callIndexer() {
     cat << "_EOF"
 ------------------------------------------------------
 Prepare to Call Indexer
 ------------------------------------------------------
 _EOF
-    untarName=$1
     # $mainWd/downloads/opengrok-1.1-rc74
-    opengropPath=$downloadPath/$untarName
+    opengropPath=$downloadPath/$OpenGrokUntarName
     # /usr/local/bin/opengrok-indexer
-    opengrokIndexPath=`which opengrok-indexer 2> /dev/null`
-    if [[ "$opengrokIndexPath" == "" ]]; then
-        echo No opengrok-indexer found, exit now
-        exit 5
+    opengrokIndexerPath=`which opengrok-indexer 2> /dev/null`
+    if [[ "$opengrokIndexerPath" == "" ]]; then
+        echo [Warning]: No opengrok-indexer found, nothing matter
     fi
 
     # Example:
@@ -516,7 +512,7 @@ _EOF
         -W $opengrokInstanceBase/etc/configuration.xml)
 
     # or using the opengrok-indexer wrapper like so:
-    wrapperIndexerCommand=$(echo $opengrokIndexPath \
+    wrapperIndexerCommand=$(echo $opengrokIndexerPath \
         -J=-Djava.util.logging.config.file=$propertyFile \
         -j $javaPath \
         -a $opengropPath/lib/opengrok.jar -- \
@@ -525,23 +521,18 @@ _EOF
         -d $opengrokInstanceBase/data -H -P -S -G \
         -W $opengrokInstanceBase/etc/configuration.xml)
 
-    # save indexer command into a shell
-    makeIndexerFile $wrapperIndexerCommand
+    # save indexer commands into a file
+    makeIndexerFile
 
-    # opengrok-indexer will generate opengrok0.0.log, leaving them into log directory
+    # opengrok-indexer will generate opengrok0.0.log
+    # leaving them into log directory
     cd $loggingPath
-    # $opengrokIndexPath -C -J=-Djava.util.logging.config.file=$propertyFile \
-    #     -a $opengropPath/lib/opengrok.jar -- \
-    #     -s $opengrokSrcRoot \
-    #     -d $opengrokInstanceBase/data -H -P -S -G \
-    #     -W $opengrokInstanceBase/etc/configuration.xml
-
     cat << "_EOF"
 ------------------------------------------------------
-Generating Index using Java/Python Tools
+Generating Index using Java/Wrapper Indexer Command
 ------------------------------------------------------
 _EOF
-    $wrapperIndexerCommand
+    $javaIndexerCommand
 
     if [[ $? != 0 ]]; then
         echo Generating index failed
@@ -569,7 +560,7 @@ _EOF
     chmod +x $callIndexerFilePath
 }
 
-# deployOpenGrok <untarName>
+# deployOpenGrok <OpenGrokUntarName>
 deployOpenGrok() {
     cat << "_EOF"
 ------------------------------------------------------
@@ -584,7 +575,7 @@ _EOF
     if [[ "$2" == "" ]]; then
         deployMethod=manual
     else
-        deployMethod=$2
+        deployMethod=$1
     fi
     if [[ "$deployMethod" == "wrapper" ]]; then
         # deploy OpenGrok using opengrok-deploy
@@ -603,10 +594,9 @@ _EOF
         fi
     else
         # deploy OpenGrok manually, without any tools
-        untarName=$1
         warPrefix=source
         # $mainWd/downloads/opengrok-1.1-rc74
-        opengropPath=$downloadPath/$untarName
+        opengropPath=$downloadPath/$OpenGrokUntarName
         warPath=$opengropPath/lib/$warPrefix.war
         webappsDir=$tomcatInstDir/webapps
         webXmlName=web.xml
@@ -644,16 +634,14 @@ _EOF
     fi
 }
 
-# buildPythonTools <untarName>
 buildPythonTools() {
     cat << "_EOF"
 ------------------------------------------------------
 Building OpenGrok Python Tools -- New Method
 ------------------------------------------------------
 _EOF
-    untarName=$1
     # $mainWd/downloads/opengrok-1.1-rc74
-    opengropPath=$downloadPath/$untarName
+    opengropPath=$downloadPath/$OpenGrokUntarName
 
     # check python3 env
     python3Path=`which python3 2> /dev/null`
@@ -661,14 +649,14 @@ _EOF
     if [[ "$pythonDeployBinPath" == "" ]]; then
         if [[ "python3Path" == "" ]]; then
     cat << "_EOF"
-No python3 installed, exit now
+No python3 installed, return now
 --- try
 yum install python3 -y
 apt-get install python3 -y
 brew install python3 -y
 ---
 _EOF
-            exit 255
+            return
         fi
 
         # check pip env
@@ -679,7 +667,7 @@ _EOF
             if [[ $? != 0 ]]; then
                 echo install pip failed
                 echo apt-get install python3-pip
-                exit 3
+                return
             fi
         fi
 
@@ -692,34 +680,6 @@ _EOF
             echo install OpenGrok python tools failed
             exit 2
         fi
-    fi
-}
-
-# buildLegacyTool <untarName>
-buildLegacyTool() {
-    cat << "_EOF"
-------------------------------------------------------
-Building Legacy OpenGrok Bash Script
-------------------------------------------------------
-_EOF
-    untarName=$1
-    opengropPath=$downloadPath/$untarName
-
-    cd $opengropPath/tools
-    # add write privilege to OpenGrok - the script
-    chmod +x OpenGrok
-    # add 'source command' on top of 'OpenGrok'
-    # delete previous added 'source command' first
-    # be careful for double quotation marks
-    sed -i '/^source.*env$/d' OpenGrok 2> /dev/null
-    sed -i "2a source ${mainWd}/${dynamicEnvName}" OpenGrok
-
-#    # deploy OpenGrok war to tomcat
-#    $execPrefix ./OpenGrok deploy
-#    # [Warning]: OpenGrok can not be well executed from other location.
-
-    if [[ $? != 0 ]]; then
-        echo failed at building legacy bash tool
     fi
 }
 
@@ -748,7 +708,7 @@ _EOF
     cat $summaryTxt
 }
 
-printHelpPage() {
+printSummary() {
     if [[ $osType = "linux" ]]; then
         cat << _EOF
 -------------------------------------------------
@@ -880,7 +840,7 @@ _EOF
     javaInstDir=$(/usr/libexec/java_home -v 1.8)
     javaPath=`which java 2> /dev/null`
     tomcatInstPDir=/usr/local/Cellar/tomcat
-    instVersion=`cd $tomcatInstPDir&& ls`
+    instVersion=`cd $tomcatInstPDir&& ls | sort -r | head -n 1`
     # such as /usr/local/Cellar/tomcat/9.0.8
     tomcatInstDir=$tomcatInstPDir/$instVersion/libexec
     serverXmlPath=${tomcatInstDir}/conf/server.xml
@@ -920,7 +880,7 @@ case $1 in
 
     "summary")
         set +x
-        printHelpPage
+        printSummary
         ;;
 
     *)
