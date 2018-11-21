@@ -752,7 +752,7 @@ printSummary() {
     if [[ $platCategory = "linux" ]]; then
         cat << _EOF
 -------------------------------------------------
-FOR TOMCAT 8 GUIDE
+Tomcat Version 8 User Guide
 -------------------------------------------------
 -- Under $mainWd
 # start tomcat
@@ -763,7 +763,7 @@ sudo ./daemon.sh run &> /dev/null &
 # stop tomcat
 sudo ./daemon.sh stop
 -------------------------------------------------
-FOR OPENGROK GUIDE
+OpenGrok Version $OpenGrokVersion Guide -- Legacy
 -------------------------------------------------
 -- Under ./downloads/opengrok-1.1-rc17/bin
 # deploy OpenGrok
@@ -780,7 +780,7 @@ sudo ./OpenGrok index [$opengrokSrcRoot]
                                      -- proj2
                                      -- proj3
 --------------------------------------------------------
--- GUIDE TO CHANGE LISTEN PORT
+-- Guide to Change Listen Port
 # replace s/original/8080/ to the port you want to change
 sudo sed -i 's/${newListenPort}/8080/' $serverXmlPath
 sudo ./daemon.sh stop

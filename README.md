@@ -1,11 +1,10 @@
 ### Illustrate
-- This project aims to deploy **OpenGrok** easily and quickly
-- Add manually deploy method, preferred than `wrapper`
-- [Optional] build python tools instead of legacy bash scripts along with `OpenGrok`'s update
+- This project aims to cosily deploy **OpenGrok**
+- Add ``manual`` deploy method, preferred than `wrapper` solution
+- [Optional] build python tools instead of legacy bash scripts along with OpenGrok's update
 - Imcremental installation and subsequential handling all in `oneKey`
-- Provide serveral handy scripts and packages
-- Support `Mac` since tag `v2.9`
-- Take my [Giggle](http://giggle.ddns.net:8080/source) as an example and refer [Guide](./gif/guide.gif) for how to use
+- Support `Mac` since tag `v2.9`, as well as `CentOS` and `Ubuntu`
+- Take my [Giggle](http://giggle.ddns.net:8080/source) as an example and refer [Guide](./gif/guide.gif) for how it works
 <table width=100%>
     <tr align=center>
         <th colspan=2>Tools</th>
@@ -47,7 +46,7 @@
     <tr>
         <td>OpenGrok</td>
         <td colspan=2 align=center bgcolor=orange>1.1-rc74</td>
-        <td align=left><a href=https://github.com/oracle/opengrok>opengrok official repository</a></td>
+        <td align=left><a href=https://github.com/oracle/opengrok>OpenGrok official repository</a></td>
     </tr>
     <tr>
         <td>universal ctags</td>
@@ -72,7 +71,7 @@
         <td>dynamic.env</td>
         <td align=center>&Chi;</td>
         <td>source dynamic.env</td>
-        <td colspan=1 align=left>sourced by daemon.sh</td>
+        <td colspan=1 align=left>sourced by shell scripts</td>
     </tr>
     <tr>
         <td>tomcat</td>
@@ -142,7 +141,7 @@ install `OpenGrok` using manual method
 sh oneKey.sh install
 ```
 
-or using python wrapper
+or using `python wrapper`
 
 ```ruby
 sh oneKey.sh wrapper
