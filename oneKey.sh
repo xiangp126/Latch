@@ -19,11 +19,10 @@ srvXmlTemplate=$mainWd/template/server.xml
 # dynamic env global name
 dynamicEnvName=dynamic.env
 opengrokInstanceBase=/opt/opengrok
-openGrokBinPath=""
 opengrokSrcRoot=${commInstdir}/o-source
-# new user/group to run tomcat
-tomcatUser=tomcat8
-tomcatGrp=tomcat8
+# user and group to own Tomcat install dir
+tomcatUser=`whoami`
+tomcatGrp=`whoami`
 # store install summary
 summaryTxt=INSTALLATION.TXT
 mRunFlagFile=$mainWd/.MORETIME.txt
@@ -237,7 +236,7 @@ Installing Java version 8
 _EOF
     javaPath=$javaInstDir/bin/java
     if [[ -x $javaPath ]]; then
-        echo "[Warning]: already has java 8 installed, skip"
+        # already has java 8 installed
         return
     fi
     # tackle to install java8
@@ -263,17 +262,18 @@ _EOF
     # change owner of java install directory to root:root
     $execPrefix chown -R root:root $javaInstDir
 
+    javaVersion=$($javaPath -version)
     cat << _EOF
 ------------------------------------------------------
 java package install path = $javaInstDir
 java path = $javaPath
-$($javaPath -version)
+$javaVersion
 ------------------------------------------------------
 _EOF
 }
 
 changeListenPort() {
-    # Restore server.sml to original
+    # restore server.sml to original content
     # srvXmlTemplate=$mainWd/template/server.xml
     $execPrefix cp $srvXmlTemplate $serverXmlPath
 
@@ -311,28 +311,8 @@ _EOF
             echo [Error]: missing $serverXmlPath, please check it
             exit 255
         fi
-
-        # change listen port if not default 8080, passed as $1
-        changeListenPort $1
+        # already has tomcat installed
         return
-    fi
-
-    # run tomcat using newly made user: tomcat:tomcat
-    newUser=$tomcatUser
-    newGrp=$tomcatGrp
-    # create group if not exist
-    egrep "^$newGrp" /etc/group &> /dev/null
-    if [[ $? = 0 ]]; then
-        echo [Warning]: group $newGrp already exist
-    else
-        $execPrefix groupadd $newUser
-    fi
-    # create user if not exist
-    egrep "^$newUser" /etc/passwd &> /dev/null
-    if [[ $? = 0 ]]; then
-        echo [Warning]: group $newGrp already exist
-    else
-        $execPrefix useradd -s /bin/false -g $newGrp -d $tomcatInstDir $newUser
     fi
 
     # wgetLink=http://www-eu.apache.org/dist/tomcat/tomcat-8/v8.5.27/bin
@@ -352,7 +332,7 @@ _EOF
     fi
 
     # change owner:group of TOMCAT_HOME
-    $execPrefix chown -R $newUser:$newGrp $tomcatInstDir
+    $execPrefix chown -R $tomcatUser:$tomcatGrp $tomcatInstDir
     cd $tomcatInstDir
     $execPrefix chmod 775 conf
     $execPrefix chmod g+r conf/*
@@ -360,7 +340,7 @@ _EOF
     # change listen port if not the default value, passed as $1
     changeListenPort $1
 
-    # make daemon script to start/shutdown Tomcat
+    # make daemon script to start/stop Tomcat
     cd $mainWd
     # template script to copy from
     sptCopyFrom=./template/daemon.sh
@@ -376,6 +356,7 @@ _EOF
         echo [Error]: make daemon.sh error, quitting now
         exit
     fi
+
     cat << _EOF
 ------------------------------------------------------
 Start to Compiling Jsvc
@@ -453,7 +434,6 @@ export OPENGROK_SRC_ROOT=$opengrokSrcRoot
 # export OPENGROK_WEBAPP_CONTEXT=ROOT
 # export OPENGROK_GENERATE_HISTORY=off
 export OPENGROK_CTAGS=$uCtagsPath
-export OPENGROK_BIN_PATH=$openGrokBinPath
 _EOF
     # do not parse value of $var
     cat >> $dynamicEnvName << "_EOF"
@@ -542,13 +522,6 @@ _EOF
     if [[ "$opengrokIndexerPath" == "" ]]; then
         echo [Warning]: No opengrok-indexer found, nothing matter
     fi
-
-    # Example:
-    # opengrok-indexer -C \
-    #     -J=-Djava.util.logging.config.file=/opt/opengrok/logging.properties \
-    #     -a /Users/corsair/myGit/let-opengrok/downloads/opengrok-1.1-rc74/lib/opengrok.jar -- \
-    #     -s /opt/o-source -d /opt/opengrok/data -H -P -S -G \
-    #     -W /opt/opengrok/etc/configuration.xml
 
     propertyFile=$opengrokInstanceBase/logging.properties
     # The indexer can be run either using opengrok.jar directly:
@@ -664,7 +637,12 @@ _EOF
         if [[ "$opengrokInstanceBase" != "/var/opengrok" ]]; then
             cd $webappsDir
             mkdir $warPrefix
-            tar -xvf $warPrefix.war -C $warPrefix
+            # tar -xvf $warPrefix.war -C $warPrefix
+            unzip $warPrefix.war -d $warPrefix
+            if [[ $? != 0 ]]; then
+                echo "untar $warPrefix.war failed"
+                exit 5
+            fi
             cd $warPrefix/WEB-INF
             configXmlPath=$opengrokInstanceBase/etc/configuration.xml
             sed -e 's:/var/opengrok/etc/configuration.xml:'"$configXmlPath"':g' \
@@ -834,7 +812,7 @@ _EOF
     fi
     cat << _EOF
 --------------------------------------------------------
-START TOMCAT WEB SERVICE
+Start Tomcat Web Service
 --------------------------------------------------------
 _EOF
     sleep 1
@@ -916,23 +894,22 @@ install() {
         # platform category is Mac
         platCategory=mac
         preInstallForMac
-
-        # $1 passed as new listen port
-        changeListenPort $1
     else
         # platform category is Linux
         platCategory=linux
         preInstallForLinux
-
+        # install java & tomcat
         reAssembleJDK
         installJava8
-        # $1 passed as new listen port
-        installTomcat8 $1
+        installTomcat8
     fi
 
-    # common install part
+    # begin of common install part
+    changeListenPort $1
     installuCtags
     installOpenGrok
+    # end of common install part
+
     tackleWebService
     installSummary
 }
