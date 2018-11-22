@@ -282,7 +282,7 @@ changeListenPort() {
         newListenPort=$1
         cat << _EOF
 ------------------------------------------------------
-Changing Default Listen Port 8080 to $newListenPort
+Changing Listen Port from Default 8080 to $newListenPort
 ------------------------------------------------------
 _EOF
         $execPrefix sed -i --regexp-extended \
@@ -290,7 +290,7 @@ _EOF
             $serverXmlPath
         # check if returns successfully
         if [[ $? != 0 ]]; then
-            echo [Error]: change listen port error, quitting now
+            echo [Error]: change listen port failed, quitting now
             exit
         fi
     fi
@@ -312,7 +312,7 @@ _EOF
             exit 255
         fi
 
-        # change listen port if not the default value, passed as $1
+        # change listen port if not default 8080, passed as $1
         changeListenPort $1
         return
     fi
@@ -872,18 +872,38 @@ _EOF
             exit 255
         fi
         brew install tomcat
+        if [[ "$OpenGrokDeployMethod" == "wrapper" ]]; then
+            brew install python3
+            pip3 install --upgrade pip
+        fi
         touch $mRunFlagFile
     fi
-
+    # set proper env
     javaInstDir=$(/usr/libexec/java_home -v 1.8)
     javaPath=`which java 2> /dev/null`
     tomcatInstPDir=/usr/local/Cellar/tomcat
-    instVersion=`cd $tomcatInstPDir&& ls | sort -r | head -n 1`
+    instVersion=`cd $tomcatInstPDir && ls | sort -r | head -n 1`
     # such as /usr/local/Cellar/tomcat/9.0.8
     tomcatInstDir=$tomcatInstPDir/$instVersion/libexec
     serverXmlPath=${tomcatInstDir}/conf/server.xml
     tomcatUser=`whoami`
     tomcatGrp='staff'
+}
+
+preInstallForLinux() {
+    cat << _EOF
+--------------------------------------------------------
+Pre Install Tools for Linux
+--------------------------------------------------------
+_EOF
+    if [[ ! -f $mRunFlagFile ]]; then
+        if [[ "$platOsType" == "ubuntu" ]]; then
+            sudo apt-get install python3 -y
+        elif [[ "$platOsType" == "centos" ]]; then
+            sudo yum install python3 -y
+        fi
+        touch $mRunFlagFile
+    fi
 }
 
 install() {
@@ -896,31 +916,18 @@ install() {
         # platform category is Mac
         platCategory=mac
         preInstallForMac
-        if [[ "$OpenGrokDeployMethod" == "wrapper" ]]; then
-            if [[ ! -f $mRunFlagFile ]]; then
-                brew install python3
-                pip3 install --upgrade pip
-            fi
-        fi
+
         # $1 passed as new listen port
         changeListenPort $1
     else
         # platform category is Linux
         platCategory=linux
+        preInstallForLinux
+
         reAssembleJDK
         installJava8
         # $1 passed as new listen port
         installTomcat8 $1
-        if [[ ! -f $mRunFlagFile ]]; then
-            if [[ "$platOsType" == "ubuntu" ]]; then
-                sudo apt-get install python3 -y
-            elif [[ "$platOsType" == "centos" ]]; then
-                sudo yum install python3 -y
-            fi
-        fi
-    fi
-    if [[ ! -f $mRunFlagFile  ]]; then
-        touch $mRunFlagFile
     fi
 
     # common install part
