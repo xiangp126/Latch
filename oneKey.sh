@@ -23,6 +23,7 @@ opengrokSrcRoot=${commInstdir}/o-source
 # user and group to own Tomcat install dir
 tomcatUser=`whoami`
 tomcatGrp=`whoami`
+python3Path=`which python3 2> /dev/null`
 # store install summary
 summaryTxt=INSTALLATION.TXT
 mRunFlagFile=$mainWd/.MORETIME.txt
@@ -499,7 +500,7 @@ _EOF
     # mkdir opengrok SRC_ROOT if not exist
     $execPrefix mkdir -p $opengrokSrcRoot
     srcRootUser=`whoami 2> /dev/null`
-    if [[ '$srcRootUser' != '' ]]; then
+    if [[ '$srcRootUser' != '' && ! -f "$mRunFlagFile" ]]; then
         $execPrefix chown -R $srcRootUser $opengrokSrcRoot
         $execPrefix chown -R $srcRootUser $opengrokInstanceBase
     fi
@@ -672,7 +673,7 @@ _EOF
     python3Path=`which python3 2> /dev/null`
     pythonDeployBinPath=`which opengrok-deploy 2> /dev/null`
     if [[ "$pythonDeployBinPath" == "" ]]; then
-        if [[ "python3Path" == "" ]]; then
+        if [[ "$python3Path" == "" ]]; then
             echo check your python3 env first
             exit 12
         fi
@@ -850,12 +851,14 @@ _EOF
             exit 255
         fi
         brew install tomcat
-        if [[ "$OpenGrokDeployMethod" == "wrapper" ]]; then
-            brew install python3
-            pip3 install --upgrade pip
-        fi
         touch $mRunFlagFile
     fi
+    # additional for 'wrapper' mode
+    if [[ "$OpenGrokDeployMethod" == "wrapper" && "python3Path" == "" ]]; then
+        brew install python3
+        pip3 install --upgrade pip
+    fi
+
     # set proper env
     javaInstDir=$(/usr/libexec/java_home -v 1.8)
     javaPath=`which java 2> /dev/null`
@@ -874,13 +877,12 @@ preInstallForLinux() {
 Pre Install Tools for Linux
 --------------------------------------------------------
 _EOF
-    if [[ ! -f $mRunFlagFile ]]; then
+    if [[ "$OpenGrokDeployMethod" == "wrapper" && "python3Path" == "" ]]; then
         if [[ "$platOsType" == "ubuntu" ]]; then
             sudo apt-get install python3 -y
         elif [[ "$platOsType" == "centos" ]]; then
             sudo yum install python3 -y
         fi
-        touch $mRunFlagFile
     fi
 }
 
