@@ -256,9 +256,11 @@ sh addcron.sh
 
 ### Intelligence Window
 
-hover over the item with mouse and press key `1` to launch `Intelligence Window`
-
-press key `2` to **highlight or unhighlight** the item
+- hover over the item with mouse and press key `1` to launch `Intelligence Window`
+- press key `b` to jump to previous appearance of item, and `n` jump to the next one
+- key `2` to **highlight** or unhighlight the item
+- key `5` to **unhighlight all**
+- `3` or `4` do the same function as key `2` but with different highlight color
 
 ### Notice
     If you use EZ-Zoom on Chrome with OpenGrok, make sure it's 100% or OpenGrok will jump to the wrong line
