@@ -1,10 +1,10 @@
 ### Illustrate
-- This project aims to cosily deploy **OpenGrok**
+- This project aims to cosily deploy **OpenGrok** on `Mac` and `Linux`
 - Add ``manual`` deploy method, preferred than `wrapper` solution
 - [Optional] build python tools instead of legacy bash scripts along with OpenGrok's update
 - Imcremental installation and subsequential handling all in `oneKey`
-- Support `Mac` since tag `v2.9`, as well as `CentOS` and `Ubuntu`
-- Take my [Giggle](http://giggle.ddns.net:8080/source) as an example and refer [Guide](./gif/guide.gif) for how it works
+- Refer [Guide](./gif/guide.gif) for how it works
+
 <table width=100%>
     <tr align=center>
         <th colspan=2>Tools</th>
@@ -85,7 +85,7 @@
     </tr>
 </table>
 
-> Latest stable version: 3.0
+> Latest stable version: 2.0
 
 ### Lazy Deploy
 #### clone `latch`
@@ -95,11 +95,10 @@ git clone https://github.com/xiangp126/Latch
 
 #### set up source code
 
-_put your source code into `OPENGROK_SRC_ROOT`, **per code per directory**_
+put your source code into `OPENGROK_SRC_ROOT`, **per code per directory**
 
-#### install routine
-```
-# help message
+#### help message
+```bash
 sh oneKey.sh
 
 [NAME]
@@ -135,13 +134,14 @@ sh oneKey.sh
       |_|               |___/
 ```
 
-install `OpenGrok` using manual method
+#### install routine
+install `OpenGrok` using `manual` method
 
 ```
 sh oneKey.sh install
 ```
 
-or using `python wrapper`
+or using python `wrapper`
 
 ```ruby
 sh oneKey.sh wrapper
@@ -151,16 +151,16 @@ sh oneKey.sh wrapper
 > `indexer` was called in `oneKey`, you can also run `callIndexer` manually<br>
 > take you server address as `127.0.0.1` for example<br>
 
-_then browser your `http://127.0.0.1:8080/source`_
+then browser your `http://127.0.0.1:8080/source`
 
 ### Handle Web Service
-#### mac
+#### on mac
 ```bash
 catalina stop
 catalina start
 ```
 
-#### linux
+#### on linux
 ```bash
 # repo main directory
 sudo ./daemon stop
@@ -168,14 +168,13 @@ sudo ./daemon start
 ```
 
 ### Create Index Manually
-
-#### python tools - new method
+#### new method
 ```bash
 # repo main directory
 ./callIndexer
 ```
 
-#### bash script - lagacy method
+#### lagacy method (deprecated now)
 ```bash
 # make index of source (multiple index)
 ./OpenGrok index [/opt/o-source]
@@ -186,7 +185,7 @@ sudo ./daemon start
 
 ### Introduction to Handy tools
 #### auto pull
-_only support `Git` repository, auto re-indexing_
+only support `Git` repository, auto re-indexing
 
 ```bash
 # Go into your OPENGROK_SRC_ROOT
@@ -198,7 +197,7 @@ coreutils-8.21      dpdk-stable-17.11.2 glibc-2.7           libconhash
 dpdk-stable-17.05.2 dpvs                keepalived          nginx
 ```
 
-_add or remove item in *`updateDir`* of [autopull.sh](./autopull.sh)_
+add or remove item in `updateDir` of [autopull.sh](./autopull.sh)
 
 ```bash
 updateDir=(
@@ -206,12 +205,6 @@ updateDir=(
     "keepalived"
     "Add Repo Name according to upper dir name"
 )
-```
-
-_execute it_
-
-```bash
-sh autopull.sh
 ```
 
 #### auto rsync
@@ -222,18 +215,18 @@ SSHPORT=
 SSHUSER=
 SERVER=
 SRCDIR_ON_SERVER=
+```
 
+copy **template rsync.config** to current `rsync.config`
+
+```bash
 cp ./template/rsync.config .
 vim rsync.config
 # fix the information as instructed
 ```
 
-```bash
-sh rsync.sh
-```
-
-#### add cron
-_chage the time as you wish in [addcron.sh](./addcron.sh)_
+#### add cron jobs
+chage the time as you wish in [addcron.sh](./addcron.sh)
 
 ```bash
 # Generate crontab file
@@ -242,28 +235,24 @@ cat << _EOF > $crontabFile
 _EOF
 ```
 
-_and change *`updateShellPath`* as the shell needs auto executed by cron as you wish, default is `autopull.sh`_
+and change `updateShellPath` (the shell needs auto executed by cron) as you wish, default is `autopull.sh`
 
 ```bash
 updateShellPath=$mainWd/autopull.sh
 ```
 
-_execute it_
-
-```bash
-sh addcron.sh
-```
-
 ### Intelligence Window
+#### how to launch?
+hover over the item with mouse and press key `1` (numeric 1) to launch `Intelligence Window`
 
-- hover over the item with mouse and press key `1` to launch `Intelligence Window`
-- press key `b` to jump to previous appearance of item, and `n` jump to the next one
+#### key shortcuts
+- press key `b` to jump to previous appearance of item, and `n` to jump to the next one
 - key `2` to **highlight** or unhighlight the item
 - key `5` to **unhighlight all**
 - `3` or `4` do the same function as key `2` but with different highlight color
 
 ### Notice
-    If you use EZ-Zoom on Chrome with OpenGrok, make sure it's 100% or OpenGrok will jump to the wrong line
+If you use `EZ-Zoom` on Chrome with OpenGrok, make sure it's **100%** or OpenGrok will jump to the wrong line
 
 ### License
 The [MIT](./LICENSE.txt) License (MIT)
