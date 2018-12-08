@@ -251,8 +251,23 @@ hover over the item with mouse and press key `1` (numeric 1) to launch `Intellig
 - key `5` to **unhighlight all**
 - `3` or `4` do the same function as key `2` but with different highlight color
 
-### Notice
-If you use `EZ-Zoom` on Chrome with OpenGrok, make sure it's **100%** or OpenGrok will jump to the wrong line
+### Problem Fix
+#### `EZ-Zoom`
+    If you use `EZ-Zoom` on `Chrome` with OpenGrok, make sure it's **100%** or OpenGrok will jump to the wrong line
+
+#### dyld library issue - `mac`
+```
+dyld: Library not loaded: /usr/local/opt/gettext/lib/libintl.8.dylib
+  Referenced from: /usr/local/bin/wget
+  Reason: image not found
+[1]    15507 abort      wget
+```
+
+brew install what was missing, here is `gettext`
+
+```bash
+brew install gettext
+```
 
 ### License
 The [MIT](./LICENSE.txt) License (MIT)

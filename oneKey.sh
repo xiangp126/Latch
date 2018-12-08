@@ -347,6 +347,7 @@ _EOF
     sptCopyFrom=./template/daemon.sh
     # rename this script to
     daeName=daemon.sh
+    daemonPath=$(pwd)/$daeName
     if [[ ! -f $daeName ]]; then
         cp $sptCopyFrom $daeName
         # add source command at top of script daemon.sh
@@ -500,7 +501,7 @@ _EOF
     # mkdir opengrok SRC_ROOT if not exist
     $execPrefix mkdir -p $opengrokSrcRoot
     srcRootUser=`whoami 2> /dev/null`
-    if [[ '$srcRootUser' != '' && ! -f "$mRunFlagFile" ]]; then
+    if [[ '$srcRootUser' != '' ]]; then
         $execPrefix chown -R $srcRootUser $opengrokSrcRoot
         $execPrefix chown -R $srcRootUser $opengrokInstanceBase
     fi
@@ -575,13 +576,32 @@ _EOF
 #/bin/bash
 set -x
 cd $loggingPath
-# The indexer can be run either using opengrok.jar directly:
+# The indexer can be run using java directly
 $javaIndexerCommand
 _EOF
     if [[ "$OpenGrokDeployMethod" == "wrapper" ]]; then
         cat << _EOF >> $callIndexerFilePath
-# or using the opengrok-indexer wrapper like so:
+# or using the opengrok-indexer wrapper
 # $wrapperIndexerCommand
+_EOF
+    fi
+
+    cat << _EOF >> $callIndexerFilePath
+cat << _EOF_Ha
+------------------------------------------------------
+Restarting Web Service
+------------------------------------------------------
+_EOF_Ha
+_EOF
+    if [[ "$platCategory" == "mac" ]]; then
+        cat << _EOF >> $callIndexerFilePath
+# catalina stop
+# catalina start
+_EOF
+    else
+        cat << _EOF >> $callIndexerFilePath
+# $execPrefix $daemonPath stop
+# $execPrefix $daemonPath start
 _EOF
     fi
     chmod +x $callIndexerFilePath
