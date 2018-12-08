@@ -20,6 +20,8 @@ srvXmlTemplate=$mainWd/template/server.xml
 dynamicEnvName=dynamic.env
 opengrokInstanceBase=/opt/opengrok
 opengrokSrcRoot=${commInstdir}/o-source
+daeName=daemon.sh
+daemonPath=$mainWd/$daeName
 # user and group to own Tomcat install dir
 tomcatUser=`whoami`
 tomcatGrp=`whoami`
@@ -344,14 +346,12 @@ _EOF
     # make daemon script to start/stop Tomcat
     cd $mainWd
     # template script to copy from
-    sptCopyFrom=./template/daemon.sh
+    daemonTemplate=./template/daemon.sh
     # rename this script to
-    daeName=daemon.sh
-    daemonPath=$(pwd)/$daeName
     if [[ ! -f $daeName ]]; then
-        cp $sptCopyFrom $daeName
+        cp $daemonTemplate $daemonPath
         # add source command at top of script daemon.sh
-        sed -i "2a source ${mainWd}/${dynamicEnvName}" $daeName
+        sed -i "2a source ${mainWd}/${dynamicEnvName}" $daemonPath
     fi
     # check if returns successfully
     if [[ $? != 0 ]]; then
