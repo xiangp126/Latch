@@ -6,8 +6,8 @@ mainWd=$(cd $(dirname $0); pwd)
 loggingPath=$mainWd/log
 logFile=$loggingPath/crontab.log
 crontabFile=$mainWd/crontab.txt
-# updateShellPath=$mainWd/autopull.sh
-updateShellPath=$mainWd/rsync.sh
+updateShellPath=$mainWd/autopull.sh
+# updateShellPath=$mainWd/rsync.sh
 execPrefix=sudo
 
 if [[ ! -f $updateShellPath ]]; then
