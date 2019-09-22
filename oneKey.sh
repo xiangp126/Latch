@@ -41,7 +41,7 @@ platOsType=macos
 # mac | linux
 platCategory=mac
 # OpenGrok info globally marked here
-OpenGrokVersion=1.1-rc74
+OpenGrokVersion=1.3.2
 OpenGrokTarName=opengrok-$OpenGrokVersion.tar.gz
 OpenGrokUntarName=opengrok-$OpenGrokVersion
 # wrapper/manual -- default manual
