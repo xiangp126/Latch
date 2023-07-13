@@ -10,8 +10,9 @@ INSTALLATION.TXT
 .MORETIME.txt
 downloads/
 log/
-jdk-*.tar.gz
+*.tar.gz
 rsync.config
 opengrok*.log
 callIndexer
+callIndexer_exe_with_sudo
 !template/rsync.config

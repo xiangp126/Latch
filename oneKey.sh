@@ -10,8 +10,8 @@ commInstdir=$rootInstDir
 execPrefix="sudo"
 # universal ctags install dir
 uCtagsInstDir=${commInstdir}/u-ctags
-javaInstDir=/opt/java8
-tomcatInstDir=/opt/tomcat8
+javaInstDir=/opt/java
+tomcatInstDir=/opt/tomcat
 # default new listen port is 8080
 newListenPort=8080
 serverXmlPath=${tomcatInstDir}/conf/server.xml
@@ -41,7 +41,7 @@ platOsType=macos
 # mac | linux
 platCategory=mac
 # OpenGrok info globally marked here
-OpenGrokVersion=1.3.2
+OpenGrokVersion=1.12.12
 OpenGrokTarName=opengrok-$OpenGrokVersion.tar.gz
 OpenGrokUntarName=opengrok-$OpenGrokVersion
 # wrapper/manual -- default manual
@@ -114,8 +114,8 @@ checkPlatOsType() {
                 # echo "Platform is Raspbian"
                 platOsType=ubuntu
             else
+                platOsType=ubuntu
                 echo "Sorry, We did not support your platform, pls check it first"
-                exit
             fi
             ;;
         *)
@@ -231,12 +231,16 @@ _EOF
     fi
 }
 
-installJava8() {
+installJava() {
     cat << "_EOF"
 ------------------------------------------------------
 Installing Java version 8
 ------------------------------------------------------
 _EOF
+    javaPath=/bin/java
+    JAVA_HOME=$javaPath
+    return
+
     javaPath=$javaInstDir/bin/java
     if [[ -x $javaPath ]]; then
         # already has java 8 installed
@@ -299,7 +303,7 @@ _EOF
     fi
 }
 
-installTomcat8() {
+installTomcat() {
     cat << "_EOF"
 ------------------------------------------------------
 Installing Tomcat version 8
@@ -318,11 +322,16 @@ _EOF
         return
     fi
 
-    # wgetLink=http://www-eu.apache.org/dist/tomcat/tomcat-8/v8.5.27/bin
-    tomcatVersion=apache-tomcat-8.5.31
+    wgetLink=https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.11/bin/apache-tomcat-10.1.11.tar.gz
+    tomcatVersion=apache-tomcat-10.1.11
     tarName=${tomcatVersion}.tar.gz
 
-    cd $pktPath
+    if [[ -f "$tarName" ]]; then
+        echo "File already exist. Skipping download."
+    else
+        wget $wgetLink
+    fi
+
     # untar into /opt/tomcat and strip one level directory
     if [[ ! -d $tomcatInstDir ]]; then
         $execPrefix mkdir -p $tomcatInstDir
@@ -342,6 +351,10 @@ _EOF
 
     # change listen port if not the default value, passed as $1
     changeListenPort $1
+    # start tomcat
+    $tomcatInstDir/bin/startup.sh
+
+    return
 
     # make daemon script to start/stop Tomcat
     cd $mainWd
@@ -367,7 +380,7 @@ _EOF
     $execPrefix chmod 755 $tomcatInstDir/bin
     cd $tomcatInstDir/bin
     jsvcTarName=commons-daemon-native.tar.gz
-    jsvcUntarName=commons-daemon-1.1.0-native-src
+    jsvcUntarName=commons-daemon-1.3.4-native-src
     # jsvcUntarName=commons-daemon-1.0.15-native-src
     if [[ ! -f $jsvcTarName ]]; then
         echo [Error]: $jsvcTarName not found, wrong tomcat package downloaded
@@ -647,7 +660,7 @@ _EOF
         # copy source.war to tomcat webapps
         cp $warPath $webappsDir
         if [[ $? != 0 ]]; then
-            echo copy $warPrefix.war to tomcat failed
+            copy $warPrefix.war to tomcat failed
             exit 5
         fi
 
@@ -897,13 +910,15 @@ preInstallForLinux() {
 Pre Install Tools for Linux
 --------------------------------------------------------
 _EOF
-    if [[ "$OpenGrokDeployMethod" == "wrapper" && "python3Path" == "" ]]; then
-        if [[ "$platOsType" == "ubuntu" ]]; then
-            sudo apt-get install python3 -y
-        elif [[ "$platOsType" == "centos" ]]; then
-            sudo yum install python3 -y
-        fi
-    fi
+
+if [[ "$platOsType" == "ubuntu" ]]; then
+    apt-get install \
+        pkg-config libevent-dev build-essential cmake \
+        automake curl autoconf libtool sshfs python3 \
+        net-tools openjdk-11-jdk -y
+elif [[ "$platOsType" == "centos" ]]; then
+        sudo yum install python3 -y
+fi
 }
 
 install() {
@@ -921,9 +936,9 @@ install() {
         platCategory=linux
         preInstallForLinux
         # install java & tomcat
-        reAssembleJDK
-        installJava8
-        installTomcat8
+        # reAssembleJDK
+        installJava
+        installTomcat
     fi
 
     # begin of common install part
