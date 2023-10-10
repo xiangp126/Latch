@@ -7,9 +7,9 @@
 # Misc Info
 catBanner="---------------------------------------------------"
 catBanner=$(echo "$catBanner" | sed 's/------/------ /g')
-# beautifyGap1="-> "
-# beautifyGap2="   "
-# beautifyGap3="♣  "
+beautifyGap1="-> "
+beautifyGap2="   "
+beautifyGap3="♣  "
 mainWd=$(cd $(dirname $0); pwd)
 makeJobs=8
 commInstdir=/opt
@@ -29,6 +29,7 @@ javaPath=$javaInstDir/bin/java
 JAVA_HOME=$javaInstDir
 
 # Tomcat Info
+tomcatVersion=10.1.13
 TOMCAT_HOME=$commInstdir/tomcat
 CATALINA_HOME=$TOMCAT_HOME
 tomcatInstDir=$TOMCAT_HOME
@@ -38,6 +39,7 @@ setEnvFileName=setenv.sh
 setEnvFilePath=$CATALINA_HOME/bin/$setEnvFileName
 catalinaShellPath=$tomcatInstDir/bin/catalina.sh
 catalinaPIDFile=$tomcatInstDir/temp/tomcat.pid
+catalinaGetVerCmd=$tomcatInstDir/bin/version.sh
 # serverXmlPath=${tomcatInstDir}/conf/server.xml
 # srvXmlTemplate=$mainWd/template/server.xml
 
@@ -167,6 +169,15 @@ installTomcat() {
 $catBanner
 Installing Tomcat 10
 _EOF
+    if [[ -x $catalinaGetVerCmd ]]; then
+        echo "Tomcat is already installed at: $tomcatInstDir"
+        tomcatVerContext="$($catalinaGetVerCmd)"
+        tomcatVersion=$(echo "$tomcatVerContext" | awk -F' ' '/Server number:/ {print $NF}')
+        echo "$tomcatVerContext"
+        echo "Tomcat Version = $tomcatVersion"
+        return
+    fi
+
     # Tomcat 10 binary in the official website always changes to the latest version
     # Define the baseUrl for Apache Tomcat 10 releases
     baseUrl="https://dlcdn.apache.org/tomcat/tomcat-10"
@@ -178,9 +189,9 @@ _EOF
     # <a href="v10.1.13/">v10.1.13/</a>
     latestVersion=$(echo "$htmlPage" | grep -oP 'v\d+\.\d+\.\d+' | head -n 1)
     # v10.1.13 => 10.1.13
-    versionNO=$(echo "$latestVersion" | grep -oP '\d+\.\d+\.\d+')
-    tomcatName=apache-tomcat-$versionNO
-    tomcatTarName=$tomcatName.tar.gz
+    tomcatVersion=$(echo "$latestVersion" | grep -oP '\d+\.\d+\.\d+')
+    tomcatFullName=apache-tomcat-$tomcatVersion
+    tomcatTarName=$tomcatFullName.tar.gz
 
     if [ -n "$latestVersion" ]; then
         # Construct the URL for the latest Tomcat 10 release binary
@@ -232,7 +243,7 @@ _EOF
 
     cat << _EOF
 $catBanner
-Tomcat Version Name = $tomcatName
+Tomcat Version Name = $tomcatFullName
 Tomcat Install Path = $tomcatInstDir
 _EOF
 }
@@ -399,6 +410,7 @@ Universal Ctags Path = $uCtagsBinPath
 Java Path = $javaPath
 Java Home = $javaInstDir
 Tomcat Home = $tomcatInstDir
+Tomcat Version = $tomcatVersion
 Opengrok Instance Base = $openGrokInstanceBase
 Opengrok Source Root = $openGrokSrcRoot => $systemSrcRoot
 Indexer File: $indexerFilePath
@@ -441,19 +453,19 @@ _EOF
 
 startTomcat() {
     cd $mainWd
-    sudo lsof -i :$newListenPort
-    if [[ $? == 0 ]]; then
-        cat << _EOF
-$catBanner
-Stop Tomcat Web Service
-_EOF
-        sudo $catalinaShellPath stop -force
-    fi
-
     cat << _EOF
 $catBanner
-Start Tomcat Web Service
+Checking if Tomcat is running
 _EOF
+    sudo lsof -i :$newListenPort
+    if [[ $? == 0 ]]; then
+        echo "$beautifyGap1 Tomcat is running, stopping it now"
+        sudo $catalinaShellPath stop -force
+    else
+        echo "$beautifyGap1 Tomcat is not running"
+    fi
+
+    echo "$beautifyGap1 Starting Tomcat now"
     sudo $catalinaShellPath start
 }
 
