@@ -1,4 +1,6 @@
 ### Usage
+Do not remove `latch` folder after installation. It is required by `callIndexer` to run.
+
 ```git
 git clone https://github.com/xiangp126/latch
 

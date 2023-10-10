@@ -345,7 +345,7 @@ _EOF
 }
 
 callIndexer() {
-    local loggingPropertyFile=$openGrokInstanceBase/ect/logging.properties
+    local loggingPropertyFile=$openGrokInstanceBase/etc/logging.properties
     javaIndexerCommand=$(echo $javaPath \
         -Djava.util.logging.config.file=$loggingPropertyFile \
         -jar $openGrokPath/lib/opengrok.jar \
