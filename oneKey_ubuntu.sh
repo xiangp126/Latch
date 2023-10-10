@@ -45,8 +45,8 @@ catalinaPIDFile=$tomcatInstDir/temp/tomcat.pid
 openGrokVersion=1.12.12
 openGrokInstDir=$commInstdir/opengrok
 openGrokTarName=opengrok-$openGrokVersion.tar.gz
-openGrokUntarName=opengrok-$openGrokVersion
-openGrokPath=$downloadPath/$openGrokUntarName
+openGrokUntarDir=opengrok-$openGrokVersion
+openGrokPath=$downloadPath/$openGrokUntarDir
 # OpenGrok Indexer Info
 openGrokInstanceBase=$openGrokInstDir
 openGrokSrcRoot=$openGrokInstanceBase/src
@@ -246,12 +246,12 @@ _EOF
     downloadUrl=$downBaseUrl/$openGrokVersion/$openGrokTarName
 
     # Info about OpenGrok Web Application
-    local warFileName=source
-    local installCheckPoint=$tomcatInstDir/webapps/$warFileName
-    if [[ -d $installCheckPoint ]]; then
-        echo "Directory $installCheckPoint already exist. Skipping OpenGrok install."
-        return
-    fi
+    local warFileName=source.war
+    # local installCheckPoint=$tomcatInstDir/webapps/$warFileName
+    # if [[ -d $installCheckPoint ]]; then
+    #     echo "Directory $installCheckPoint already exist. Skipping OpenGrok install."
+    #     return
+    # fi
 
     cd $downloadPath
     # check if already has tar ball downloaded
@@ -270,52 +270,50 @@ _EOF
         fi
     fi
 
-    if [[ ! -d $openGrokUntarName ]]; then
+    if [[ ! -d $openGrokUntarDir ]]; then
         tar -zxvf $openGrokTarName
     else
-        echo "Directory $openGrokUntarName already exist. Skipping untar."
+        echo "Directory $openGrokUntarDir already exist. Skipping untar."
     fi
 
-    warFilePath=$openGrokUntarName/lib/$warFileName.war
-    tomcatWebAppsDir=$tomcatInstDir/webapps
-
-    # copy source.war to tomcat webapps
-    sudo cp -f $warFilePath $tomcatWebAppsDir
-    if [[ $? != 0 ]]; then
-        echo "copy $warPath to $tomcatWebAppsDir failed, quitting now"
-        exit 2
-    fi
+    warFilePath=$openGrokUntarDir/lib/$warFileName
+    cd $openGrokUntarDir
 
     # If user does not use default OPENGROK_INSTANCE_BASE then attempt to
     # extract WEB-INF/web.xml from source.war using jar or zip utility, update
     # the hardcoded values and then update source.war with the new
     # WEB-INF/web.xml.
     if [[ "$openGrokInstanceBase" != "/var/opengrok" ]]; then
-        cd $tomcatWebAppsDir
-
-        # Extract the WEB-INF/web.xml file from source.war file
-        sudo rm -rf WEB-INF
-        sudo unzip source.war WEB-INF/web.xml
-        if [[ $? != 0 ]]; then
-            echo "unzip source.war WEB-INF/web.xml failed, quitting now"
-            exit 3
+        cd lib
+        if [[ ! -f $warFileName ]]; then
+            echo "File $warFileName does not exist, quitting now"
+            exit 2
         fi
+        # Extract the WEB-INF/web.xml file from source.war file
+        unzip -o $warFileName WEB-INF/web.xml
 
         # Change the hardcoded values in WEB-INF/web.xml
+        cd WEB-INF
         local webXmlName=web.xml
         local changeFrom=/var/opengrok/etc/configuration.xml
         local changeTo=$openGrokInstanceBase/etc/configuration.xml
-        cd WEB-INF
         # update web.xml
-        sudo sed -i -e 's:'"$changeFrom"':'"$changeTo"':g' "$webXmlName"
+        sed -i -e 's:'"$changeFrom"':'"$changeTo"':g' "$webXmlName"
 
-        cd $tomcatWebAppsDir
-        # Update source.war with the new WEB-INF/web.xml
-        sudo zip -u source.war WEB-INF/web.xml
+        cd ..
+        zip -u source.war WEB-INF/web.xml &>/dev/null
+    fi
+
+    # copy source.war to tomcat webapps
+    tomcatWebAppsDir=$tomcatInstDir/webapps
+    cd $downloadPath
+    sudo cp -f $warFilePath $tomcatWebAppsDir
+    if [[ $? != 0 ]]; then
+        echo "copy $warPath to $tomcatWebAppsDir failed, quitting now"
+        exit 2
     fi
 
     sudo mkdir -p ${openGrokInstanceBase}/{data,dist,etc,log}
-    local opengrokOwner=`ls -ld $openGrokInstanceBase | awk '{print $3}'`
 
     # check if $systemSrcRoot is exist, if no then create it
     if [[ ! -d $systemSrcRoot ]]; then
@@ -330,17 +328,13 @@ _EOF
     fi
 
     # fix one warning
-    sudo cp -f $downloadPath/$openGrokUntarName/doc/logging.properties \
+    sudo cp -f $downloadPath/$openGrokUntarDir/doc/logging.properties \
                ${openGrokInstanceBase}/etc
+
 }
 
 callIndexer() {
-    cat << _EOF
-$catBanner
-Calling the Indexer
-_EOF
     local loggingPropertyFile=$openGrokInstanceBase/ect/logging.properties
-
     javaIndexerCommand=$(echo $javaPath \
         -Djava.util.logging.config.file=$loggingPropertyFile \
         -jar $openGrokPath/lib/opengrok.jar \
@@ -358,6 +352,10 @@ _EOF
     fi
 
     cd $loggingPath
+    cat << _EOF
+$catBanner
+Calling the Indexer
+_EOF
     sudo $javaIndexerCommand
 
     if [[ $? != 0 ]]; then
@@ -381,8 +379,6 @@ sudo $javaIndexerCommand
 sudo lsof -i :$newListenPort
 if [[ \$? == 0 ]]; then
     sudo $catalinaShellPath stop -force
-    if [[ \$? != 0 ]]; then
-       sudo rm -rf $catalinaPIDFile
 fi
 sudo $catalinaShellPath start
 
@@ -452,9 +448,6 @@ $catBanner
 Stop Tomcat Web Service
 _EOF
         sudo $catalinaShellPath stop -force
-        if [[ $? != 0 ]]; then
-           sudo rm -rf $catalinaPIDFile
-        fi
     fi
 
     cat << _EOF
