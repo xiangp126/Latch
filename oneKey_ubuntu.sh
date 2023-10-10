@@ -91,7 +91,7 @@ _EOF
         # Check if 'ctags' is Universal Ctags
         if ctags --version | grep -i -q 'universal'; then
             uCtagsBinPath=`which ctags`
-            echo "Universal Ctags is already installed at: $uCtagsBinPath"
+            echo "$beautifyGap1 Universal Ctags is already installed at: $uCtagsBinPath"
             $uCtagsBinPath --version
             return
         else
@@ -150,7 +150,7 @@ $catBanner
 Installing JDK
 _EOF
     if [[ -x $javaPath ]]; then
-        echo "JDK is already installed at: $javaInstDir"
+        echo "$beautifyGap1 JDK is already installed at: $javaInstDir"
         $javaPath --version
         return
     fi
@@ -170,7 +170,7 @@ $catBanner
 Installing Tomcat 10
 _EOF
     if [[ -x $catalinaGetVerCmd ]]; then
-        echo "Tomcat is already installed at: $tomcatInstDir"
+        echo "$beautifyGap1 Tomcat is already installed at: $tomcatInstDir"
         tomcatVerContext="$($catalinaGetVerCmd)"
         tomcatVersion=$(echo "$tomcatVerContext" | awk -F' ' '/Server number:/ {print $NF}')
         echo "$tomcatVerContext"
@@ -256,14 +256,6 @@ _EOF
     local downBaseUrl=https://github.com/oracle/opengrok/releases/download/
     downloadUrl=$downBaseUrl/$openGrokVersion/$openGrokTarName
 
-    # Info about OpenGrok Web Application
-    local warFileName=source.war
-    # local installCheckPoint=$tomcatInstDir/webapps/$warFileName
-    # if [[ -d $installCheckPoint ]]; then
-    #     echo "Directory $installCheckPoint already exist. Skipping OpenGrok install."
-    #     return
-    # fi
-
     cd $downloadPath
     # check if already has tar ball downloaded
     if [[ -f $openGrokTarName ]]; then
@@ -287,6 +279,8 @@ _EOF
         echo "Directory $openGrokUntarDir already exist. Skipping untar."
     fi
 
+    # Info about OpenGrok Web Application
+    local warFileName=source.war
     warFilePath=$openGrokUntarDir/lib/$warFileName
     cd $openGrokUntarDir
 
@@ -300,7 +294,7 @@ _EOF
             echo "File $warFileName does not exist, quitting now"
             exit 2
         fi
-        # Extract the WEB-INF/web.xml file from source.war file
+        # Extract and overwrite the WEB-INF/web.xml file from source.war archive.
         unzip -o $warFileName WEB-INF/web.xml
 
         # Change the hardcoded values in WEB-INF/web.xml
@@ -308,11 +302,14 @@ _EOF
         local webXmlName=web.xml
         local changeFrom=/var/opengrok/etc/configuration.xml
         local changeTo=$openGrokInstanceBase/etc/configuration.xml
-        # update web.xml
-        sed -i -e 's:'"$changeFrom"':'"$changeTo"':g' "$webXmlName"
-
-        cd ..
-        zip -u source.war WEB-INF/web.xml &>/dev/null
+        if grep -q "$changeTo" "$webXmlName"; then
+            echo "WEB-INF/web.xml already updated, skipping sed and zip -u"
+        else
+            # update web.xml
+            sed -i -e 's:'"$changeFrom"':'"$changeTo"':g' "$webXmlName"
+            cd ..
+            zip -u source.war WEB-INF/web.xml &>/dev/null
+        fi
     fi
 
     # copy source.war to tomcat webapps
@@ -333,7 +330,7 @@ _EOF
 
     # make a soft link to /opt/src
     if [[ -L $openGrokSrcRoot ]]; then
-        echo "Soft link $openGrokSrcRoot already exist. Skipping ln -sf"
+        echo "$beautifyGap3 Soft link $openGrokSrcRoot already exist. Skipping ln -sf"
     else
         sudo ln -sf $systemSrcRoot $openGrokSrcRoot
     fi
@@ -398,7 +395,7 @@ _EOF
 
     # make a soft link to /bin/callIndexer
     if [[ -L /bin/callIndexer ]]; then
-        echo "Soft link /bin/callIndexer already exist. Skipping ln -sf"
+        echo "$beautifyGap3 Soft link /bin/callIndexer already exist. Skipping ln -sf"
     else
         sudo ln -sf $indexerFilePath /bin/callIndexer
     fi
