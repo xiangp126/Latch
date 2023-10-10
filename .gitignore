@@ -2,6 +2,7 @@
 *.swo
 *.bak
 dynamic.env
+summary.txt
 crontab.txt
 crontab.log
 daemon.sh
@@ -13,6 +14,5 @@ log/
 *.tar.gz
 rsync.config
 opengrok*.log
-callIndexer
-callIndexer_exe_with_sudo
+call_indexer.sh
 !template/rsync.config
