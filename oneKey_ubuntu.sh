@@ -82,6 +82,10 @@ sudo apt-get install -y \
 }
 
 installuCtags() {
+    cat << _EOF
+$catBanner
+Installing Universal Ctags
+_EOF
     # Check if the 'ctags' command is available
     if command -v ctags &> /dev/null; then
         # Check if 'ctags' is Universal Ctags
@@ -96,10 +100,6 @@ installuCtags() {
         fi
     fi
 
-    cat << _EOF
-$catBanner
-Installing Universal Ctags
-_EOF
     if [[ ! -d $uCtagsInstDir ]]; then
         sudo mkdir -p $uCtagsInstDir
     fi
@@ -407,14 +407,14 @@ _EOF
 summaryInfo() {
     cat > $summaryTxt << _EOF
 Universal Ctags Path = $uCtagsBinPath
-Java Path = $javaPath
 Java Home = $javaInstDir
+Java Path = $javaPath
 Tomcat Home = $tomcatInstDir
 Tomcat Version = $tomcatVersion
 Opengrok Instance Base = $openGrokInstanceBase
 Opengrok Source Root = $openGrokSrcRoot => $systemSrcRoot
 Indexer File: $indexerFilePath
-Browser Site: http://127.0.0.1:${newListenPort}/source
+Server at: http://127.0.0.1:${newListenPort}/source
 _EOF
 
 cat << _EOF
