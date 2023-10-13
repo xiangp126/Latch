@@ -2,10 +2,10 @@
 Do not remove `latch` folder after installation. It is required by `callIndexer` to run.
 
 ```git
-git clone https://github.com/xiangp126/latch
+$ git clone https://github.com/xiangp126/latch
 
-cd latch
-sh oneKey_ubuntu.sh
+$ cd latch
+$ sh oneKey_ubuntu.sh
 
 $ cat summary.txt
 Universal Ctags Path = /bin/ctags
@@ -33,8 +33,6 @@ And then call `callIndexer` to index your source code
 
 `callIndexer` is a soft link to `call_indexer.sh` under the `latch` folder. It is under `$HOME/bin` folder.
 
-```bash
-
 ### Illustrate
 ![](./gif/guide.gif)
 
@@ -51,7 +49,7 @@ hover over the item with mouse and press key `1` (numeric 1) to launch `Intellig
     If you use `EZ-Zoom` on `Chrome` with OpenGrok, make sure it's **100%** or OpenGrok will jump to the wrong line
 
 #### dyld library issue - `mac`
-```
+```bash
 dyld: Library not loaded: /usr/local/opt/gettext/lib/libintl.8.dylib
   Referenced from: /usr/local/bin/wget
   Reason: image not found
