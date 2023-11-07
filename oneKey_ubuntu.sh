@@ -384,11 +384,27 @@ _EOF
 set -x
 cd $loggingPath
 sudo $javaIndexerCommand
-sudo lsof -i :$newListenPort
-if [[ \$? == 0 ]]; then
-    sudo $catalinaShellPath stop -force
-fi
-sudo $catalinaShellPath start
+
+# loop to force stop tomcat
+while true; do
+    sudo lsof -i :$newListenPort
+    if [[ \$? == 0 ]]; then
+        sudo $catalinaShellPath stop -force
+        sleep 1
+    else
+        break
+    fi
+done
+
+# loop to force start tomcat
+while true; do
+    nohup sudo $catalinaShellPath start &
+    sleep 2
+    sudo lsof -i :$newListenPort
+    if [[ \$? == 0 ]]; then
+        break
+    fi
+done
 
 _EOF
     chmod +x $indexerFilePath
