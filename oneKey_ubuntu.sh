@@ -381,31 +381,102 @@ _EOF
 
     cat << _EOF > $indexerFilePath
 #/bin/bash
-set -x
-cd $loggingPath
-sudo $javaIndexerCommand
 
-# loop to force stop tomcat
-while true; do
-    sudo lsof -i :$newListenPort
-    if [[ \$? == 0 ]]; then
-        sudo $catalinaShellPath stop -force
-        sleep 1
-    else
-        break
-    fi
+usage() {
+    cat << __EOF
+Usage: \$0 [-hur]
+Options:
+    -h: Print this help message
+    -u: Update index and restart Tomcat
+    -r: Restart Tomcat only
+
+Example:
+    \$0 -u
+    \$0 -r
+__EOF
+    exit 1
+}
+
+[ \$# -eq 0 ] && usage
+
+# Flags
+fUpdateIndex=true
+# fRestartTomcat=false
+
+# User notation
+userNotation="@@@@"
+
+while getopts "hru" arg
+do
+    case \$arg in
+        h)
+            usage
+            exit 0
+            ;;
+        r)
+            fUpdateIndex=false
+            # fRestartTomcat=true
+            ;;
+        u)
+            fUpdateIndex=true
+            ;;
+        ?)
+            echo "\$userNotation Invalid option: -\$OPTARG" 2>&1
+            exit 1
+            ;;
+    esac
 done
 
-# loop to force start tomcat
-while true; do
-    nohup sudo $catalinaShellPath start &
-    sleep 2
-    sudo lsof -i :$newListenPort
-    if [[ \$? == 0 ]]; then
-        break
-    fi
-done
+# Shift to process non-option arguments. New $1, $2, ..., $@
+shift \$((OPTIND - 1))
+if [ \$# -gt 0 ]; then
+    echo "\$userNotation Illegal non-option arguments: \$@"
+    exit
+fi
 
+catalinaShellPath=$catalinaShellPath
+tomcatiListenPort=$newListenPort
+loggingPath="$loggingPath"
+javaIndexerCommand="$javaIndexerCommand"
+
+forceStopTomcat() {
+    echo "\$userNotation Force stop tomcat ..."
+    while true; do
+        sudo lsof -i :\$tomcatiListenPort
+        if [[ \$? == 0 ]]; then
+            sudo \$catalinaShellPath stop -force
+            sleep 1
+        else
+            break
+        fi
+    done
+}
+
+forceStartTomcat() {
+    echo "\$userNotation Force start tomcat ..."
+    while true; do
+        nohup sudo \$catalinaShellPath start &
+        sleep 2
+        sudo lsof -i :\$tomcatiListenPort
+        if [[ \$? == 0 ]]; then
+            break
+        fi
+    done
+}
+
+forceRestartTomcat() {
+    echo "\$userNotation Performing force restart tomcat ..."
+    forceStopTomcat
+    forceStartTomcat
+}
+
+# set -x
+cd \$loggingPath
+if [[ \$fUpdateIndex == true ]]; then
+    echo "\$userNotation Updating index ..."
+    sudo \$javaIndexerCommand
+fi
+forceRestartTomcat
 _EOF
     chmod +x $indexerFilePath
 
