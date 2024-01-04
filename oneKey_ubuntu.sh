@@ -7,9 +7,10 @@
 # Misc Info
 catBanner="---------------------------------------------------"
 catBanner=$(echo "$catBanner" | sed 's/------/------ /g')
-beautifyGap1="-> "
-beautifyGap2="   "
-beautifyGap3="♣  "
+beautifyGap1="->  "
+beautifyGap2="    "
+beautifyGap3="♣   "
+userNotation="@@@@"
 mainWd=$(cd $(dirname $0); pwd)
 makeJobs=8
 commInstdir=/opt
@@ -54,6 +55,7 @@ openGrokInstanceBase=$openGrokInstDir
 openGrokSrcRoot=$openGrokInstanceBase/src
 indexerFileName=call_indexer.sh
 indexerFilePath=$mainWd/$indexerFileName
+indexerLinkTarget=/bin/callIndexer
 # The default listen port is 8080
 defaltListenPort=8080
 newListenPort=8080
@@ -91,11 +93,11 @@ _EOF
         # Check if 'ctags' is Universal Ctags
         if ctags --version | grep -i -q 'universal'; then
             uCtagsBinPath=`which ctags`
-            echo "$beautifyGap1 Universal Ctags is already installed at: $uCtagsBinPath"
+            echo "$userNotation Universal Ctags is already installed at: $uCtagsBinPath"
             $uCtagsBinPath --version
             return
         else
-            echo "ctags is already installed, but it is not Universal Ctags."
+            echo "$userNotation ctags is already installed, but it is not Universal Ctags."
             sudo apt-get remove exuberant-ctags -y
         fi
     fi
@@ -107,11 +109,11 @@ _EOF
     cd $downloadPath
     local clonedName=ctags
     if [[ -d "$clonedName" ]]; then
-        echo "Directory $clonedName already exist. Skipping git clone."
+        echo "$userNotation Directory $clonedName already exist. Skipping git clone."
     else
         git clone https://github.com/universal-ctags/ctags
         if [[ $? != 0 ]]; then
-            echo [Error]: git clone error, quitting now
+            echo "$userNotation git clone error, quitting now"
             exit 255
         fi
     fi
@@ -150,7 +152,7 @@ $catBanner
 Installing JDK
 _EOF
     if [[ -x $javaPath ]]; then
-        echo "$beautifyGap1 JDK is already installed at: $javaInstDir"
+        echo "$userNotation JDK is already installed at: $javaInstDir"
         $javaPath --version
         return
     fi
@@ -170,7 +172,7 @@ $catBanner
 Installing Tomcat 10
 _EOF
     if [[ -x $catalinaGetVerCmd ]]; then
-        echo "$beautifyGap1 Tomcat is already installed at: $tomcatInstDir"
+        echo "$userNotation Tomcat is already installed at: $tomcatInstDir"
         tomcatVerContext="$($catalinaGetVerCmd)"
         tomcatVersion=$(echo "$tomcatVerContext" | awk -F' ' '/Server number:/ {print $NF}')
         echo "$tomcatVerContext"
@@ -200,12 +202,12 @@ _EOF
         cd $downloadPath
         # Download the latest Tomcat 10 release
         if [[ -f "$tomcatTarName" ]]; then
-            echo "File $tomcatTarName already exist. Skipping download."
+            echo "$userNotation File $tomcatTarName already exist. Skipping download."
         else
             wget "$tomcatUrl"
         fi
     else
-        echo "Failed to retrieve the latest Apache Tomcat version."
+        echo "$userNotation Failed to retrieve the latest Apache Tomcat version."
         exit 1
     fi
 
@@ -220,20 +222,20 @@ _EOF
             exit
         fi
     else
-        echo "Directory $tomcatInstDir already exist and is not empty. Skipping untar"
+        echo "$userNotation Directory $tomcatInstDir already exist and is not empty. Skipping untar"
     fi
 
     # change owner:group of TOMCAT_HOME
     tomcatOwner=`ls -ld $tomcatInstDir | awk '{print $3}'`
     if [[ "$tomcatOwner" == "$tomcatUser" ]]; then
-        echo "Tomcat owner is already $tomcatUser, skipping chown"
+        echo "$userNotation Tomcat owner is already $tomcatUser, skipping chown"
     else
         sudo chown -R $tomcatUser:$tomcatGrp $tomcatInstDir
     fi
 
     local deployCheckPoint=$tomcatInstDir/webapps/
     if [ "$(stat -c %a $deployCheckPoint)" -eq 755 ]; then
-        echo "Directory mod is already 755, skipping chmod"
+        echo "$userNotation Directory mod is already 755, skipping chmod"
     else
         sudo chmod -R 755 $tomcatInstDir
     fi
@@ -259,7 +261,7 @@ _EOF
     cd $downloadPath
     # check if already has tar ball downloaded
     if [[ -f $openGrokTarName ]]; then
-        echo "File $openGrokTarName already exist. Skipping download."
+        echo "$userNotation File $openGrokTarName already exist. Skipping download."
     else
         wget --no-cookies \
              --no-check-certificate \
@@ -268,7 +270,7 @@ _EOF
              -O $openGrokTarName
         # check if wget returns successfully
         if [[ $? != 0 ]]; then
-            echo "wget $downloadUrl failed, quitting now"
+            echo "$userNotation wget $downloadUrl failed, quitting now"
             exit 1
         fi
     fi
@@ -276,7 +278,7 @@ _EOF
     if [[ ! -d $openGrokUntarDir ]]; then
         tar -zxvf $openGrokTarName
     else
-        echo "Directory $openGrokUntarDir already exist. Skipping untar."
+        echo "$userNotation Directory $openGrokUntarDir already exist. Skipping untar."
     fi
 
     # Info about OpenGrok Web Application
@@ -303,7 +305,7 @@ _EOF
         local changeFrom=/var/opengrok/etc/configuration.xml
         local changeTo=$openGrokInstanceBase/etc/configuration.xml
         if grep -q "$changeTo" "$webXmlName"; then
-            echo "WEB-INF/web.xml already updated, skipping sed and zip -u"
+            echo "$userNotation WEB-INF/web.xml already updated, skipping sed and zip -u"
         else
             # update web.xml
             sed -i -e 's:'"$changeFrom"':'"$changeTo"':g' "$webXmlName"
@@ -330,7 +332,7 @@ _EOF
 
     # make a soft link to /opt/src
     if [[ -L $openGrokSrcRoot ]]; then
-        echo "$beautifyGap3 Soft link $openGrokSrcRoot already exist. Skipping ln -sf"
+        echo "$userNotation Soft link $openGrokSrcRoot already exist. Skipping ln -sf"
     else
         sudo ln -sf $systemSrcRoot $openGrokSrcRoot
     fi
@@ -341,7 +343,11 @@ _EOF
 
 }
 
-callIndexer() {
+makeIndexer() {
+    cat << _EOF
+$catBanner
+Making Indexer: $indexerFileName
+_EOF
     local loggingPropertyFile=$openGrokInstanceBase/etc/logging.properties
     javaIndexerCommand=$(echo $javaPath \
         -Djava.util.logging.config.file=$loggingPropertyFile \
@@ -351,33 +357,11 @@ callIndexer() {
         -d $openGrokInstanceBase/data -H -P -S -G \
         -W $openGrokInstanceBase/etc/configuration.xml)
 
-    makeIndexerFile
-
     # The indexer will generate opengrok0.0.log at the same directory
     # But I'd like it to generate log file at $loggingPath
     if [[ ! -d $loggingPath ]]; then
         mkdir -p $loggingPath
     fi
-
-    cd $loggingPath
-    cat << _EOF
-$catBanner
-Calling the Indexer
-_EOF
-    sudo $javaIndexerCommand
-
-    if [[ $? != 0 ]]; then
-        echo "Indexing failed, quitting now"
-        exit 1
-    fi
-}
-
-# save indexer commands into a shell
-makeIndexerFile() {
-    cat << _EOF
-$catBanner
-Saving Indexer Commands into $indexerFileName
-_EOF
 
     cat << _EOF > $indexerFilePath
 #/bin/bash
@@ -387,7 +371,7 @@ fRestartTomcat=false
 fStartTomcat=false
 fStopTomcat=false
 # User notation
-userNotation="@@@@"
+userNotation=$userNotation
 
 usage() {
     cat << __EOF
@@ -523,7 +507,7 @@ updateIndex() {
 main() {
     if [[ \$fUpdateIndex == true ]]; then
         updateIndex
-        restartTomcat
+        forceRestartTomcat
     elif [[ \$fRestartTomcat == true ]]; then
         forceRestartTomcat
     elif [[ \$fStartTomcat == true ]]; then
@@ -539,15 +523,15 @@ main
 _EOF
     chmod +x $indexerFilePath
 
-    # make a soft link to /bin/callIndexer
-    if [[ -L /bin/callIndexer ]]; then
-        echo "$beautifyGap3 Soft link /bin/callIndexer already exist. Skipping ln -sf"
+    if [[ -L $indexerLinkTarget ]]; then
+        echo "$userNotation Soft link $indexerLinkTarget already exist. Skipping ln -sf"
     else
-        sudo ln -sf $indexerFilePath /bin/callIndexer
+        echo "$userNotation Making soft link /bin/callIndexer"
+        sudo ln -sf $indexerFilePath $indexerLinkTarget
     fi
 }
 
-summaryInfo() {
+summary() {
     cat > $summaryTxt << _EOF
 Universal Ctags Path = $uCtagsBinPath
 Java Home = $javaInstDir
@@ -556,7 +540,7 @@ Tomcat Home = $tomcatInstDir
 Tomcat Version = $tomcatVersion
 Opengrok Instance Base = $openGrokInstanceBase
 Opengrok Source Root = $openGrokSrcRoot => $systemSrcRoot
-Indexer File: $indexerFilePath
+Indexer Path: $indexerFilePath <- $indexerLinkTarget
 Server at: http://127.0.0.1:${newListenPort}/source
 _EOF
 
@@ -594,25 +578,19 @@ _EOF
     sudo chmod +x $setEnvFilePath
 }
 
-startTomcat() {
-    cd $mainWd
+callIndexer() {
     cat << _EOF
 $catBanner
-Checking if Tomcat is running
+Calling Indexer
 _EOF
-    sudo lsof -i :$newListenPort
-    if [[ $? == 0 ]]; then
-        echo "$beautifyGap1 Tomcat is running, stopping it now"
-        sudo $catalinaShellPath stop -force
-    else
-        echo "$beautifyGap1 Tomcat is not running"
+    if [[ ! -f $indexerFilePath ]]; then
+        echo "Indexer file $indexerFilePath does not exist, quitting now"
+        exit 1
     fi
-
-    echo "$beautifyGap1 Starting Tomcat now"
-    sudo $catalinaShellPath start
+    $indexerFilePath -u
 }
 
-install() {
+main() {
     if [[ ! -d $downloadPath ]]; then
         mkdir -p $downloadPath
     fi
@@ -626,10 +604,10 @@ install() {
     installJdk
     installTomcat
     installOpenGrok
-    callIndexer
+    makeIndexer
     setEnv
-    startTomcat
-    summaryInfo
+    callIndexer
+    summary
 }
 
-install
+main
