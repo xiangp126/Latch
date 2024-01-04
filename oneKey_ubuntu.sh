@@ -1,9 +1,4 @@
-# For Ubuntu
-# 1. Jdk 11 apt-get install
-# 2. Tomcat 10 Manual compile and install
-# 3. Universal ctags Manual compile and install
 #!/bin/bash
-
 # Misc Info
 catBanner="---------------------------------------------------"
 catBanner=$(echo "$catBanner" | sed 's/------/------ /g')
@@ -18,17 +13,14 @@ downloadPath=$mainWd/downloads
 loggingPath=$mainWd/log
 summaryTxt=$mainWd/summary.txt
 systemSrcRoot=/opt/src
-
 # Universal Ctags Info
 uCtagsInstDir=$commInstdir/uctags
-
-# Jdk Info - apt-get
+# Jdk Info - via apt-get
 jdkSystemInstalledVersion=openjdk-11-jdk
 jdkInstDir=/usr/lib/jvm/java-11-openjdk-amd64
 javaInstDir=$jdkInstDir
 javaPath=$javaInstDir/bin/java
 JAVA_HOME=$javaInstDir
-
 # Tomcat Info
 tomcatVersion=10.1.13
 TOMCAT_HOME=$commInstdir/tomcat
@@ -41,24 +33,22 @@ setEnvFilePath=$CATALINA_HOME/bin/$setEnvFileName
 catalinaShellPath=$tomcatInstDir/bin/catalina.sh
 catalinaPIDFile=$tomcatInstDir/temp/tomcat.pid
 catalinaGetVerCmd=$tomcatInstDir/bin/version.sh
+defaltListenPort=8080
+newListenPort=8080
 # serverXmlPath=${tomcatInstDir}/conf/server.xml
 # srvXmlTemplate=$mainWd/template/server.xml
-
 # OpenGrok Info
-openGrokVersion=1.12.12
+openGrokVersion=1.13.0
 openGrokInstDir=$commInstdir/opengrok
 openGrokTarName=opengrok-$openGrokVersion.tar.gz
 openGrokUntarDir=opengrok-$openGrokVersion
 openGrokPath=$downloadPath/$openGrokUntarDir
-# OpenGrok Indexer Info
 openGrokInstanceBase=$openGrokInstDir
 openGrokSrcRoot=$openGrokInstanceBase/src
+# OpenGrok Indexer Info
 indexerFileName=call_indexer.sh
 indexerFilePath=$mainWd/$indexerFileName
 indexerLinkTarget=/bin/callIndexer
-# The default listen port is 8080
-defaltListenPort=8080
-newListenPort=8080
 
 logo() {
     cat << "_EOF"
@@ -293,8 +283,8 @@ _EOF
     if [[ "$openGrokInstanceBase" != "/var/opengrok" ]]; then
         cd lib
         if [[ ! -f $warFileName ]]; then
-            echo "File $warFileName does not exist, quitting now"
-            exit 2
+            echo "$userNotation File $warFileName does not exist, quitting now"
+            exit 1
         fi
         # Extract and overwrite the WEB-INF/web.xml file from source.war archive.
         unzip -o $warFileName WEB-INF/web.xml
@@ -310,7 +300,12 @@ _EOF
             # update web.xml
             sed -i -e 's:'"$changeFrom"':'"$changeTo"':g' "$webXmlName"
             cd ..
+            echo "$userNotation Updating source.war with new WEB-INF/web.xml"
             zip -u source.war WEB-INF/web.xml &>/dev/null
+            if [[ $? != 0 ]]; then
+                echo "$userNotation zip -u source.war WEB-INF/web.xml failed, quitting now"
+                exit 1
+            fi
         fi
     fi
 
@@ -319,7 +314,7 @@ _EOF
     cd $downloadPath
     sudo cp -f $warFilePath $tomcatWebAppsDir
     if [[ $? != 0 ]]; then
-        echo "copy $warPath to $tomcatWebAppsDir failed, quitting now"
+        echo "$userNotation copy $warPath to $tomcatWebAppsDir failed, quitting now"
         exit 2
     fi
 
@@ -425,7 +420,7 @@ do
     esac
 done
 
-# Shift to process non-option arguments. New $1, $2, ..., $@
+# Shift to process non-option arguments. New \$1, \$2, ..., \$@
 shift \$((OPTIND - 1))
 if [ \$# -gt 0 ]; then
     echo "\$userNotation Illegal non-option arguments: \$@"
@@ -557,6 +552,7 @@ setEnv() {
 $catBanner
 Setting Environment Variables for Catalina/Tomcat
 _EOF
+    # Fix Permission denied error using tee
     cat << _EOF | sudo tee $setEnvFilePath
 #!/bin/bash
 export JAVA_HOME=${JAVA_HOME}
