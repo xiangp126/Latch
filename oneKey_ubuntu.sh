@@ -381,44 +381,58 @@ _EOF
 
     cat << _EOF > $indexerFilePath
 #/bin/bash
+# Flags
+fUpdateIndex=false
+fRestartTomcat=false
+fStartTomcat=false
+fStopTomcat=false
+# User notation
+userNotation="@@@@"
 
 usage() {
     cat << __EOF
-Usage: \$0 [-hur]
+Usage: \$0 [-hursS]
 Options:
     -h: Print this help message
     -u: Update index and restart Tomcat
     -r: Restart Tomcat only
+    -s: Start Tomcat only
+    -S: Stop Tomcat only
 
 Example:
     \$0 -u
     \$0 -r
+    \$0 -s
+    \$0 -S
+
 __EOF
     exit 1
 }
 
 [ \$# -eq 0 ] && usage
-
-# Flags
-fUpdateIndex=true
-# fRestartTomcat=false
-
-# User notation
-userNotation="@@@@"
-
-while getopts "hru" arg
+# Parse the options
+while getopts "hrusS" opt
 do
-    case \$arg in
+    case \$opt in
         h)
             usage
             exit 0
             ;;
+        s)
+            fStartTomcat=true
+            break
+            ;;
+        S)
+            fStopTomcat=true
+            break
+            ;;
         r)
-            fUpdateIndex=false
-            # fRestartTomcat=true
+            fRestartTomcat=true
+            break
             ;;
         u)
             fUpdateIndex=true
+            break
             ;;
         ?)
             echo "\$userNotation Invalid option: -\$OPTARG" 2>&1
@@ -431,36 +445,67 @@ done
 shift \$((OPTIND - 1))
 if [ \$# -gt 0 ]; then
     echo "\$userNotation Illegal non-option arguments: \$@"
-    exit
+    exit 1
 fi
 
+# Variables
 catalinaShellPath=$catalinaShellPath
 tomcatiListenPort=$newListenPort
 loggingPath="$loggingPath"
 javaIndexerCommand="$javaIndexerCommand"
+stopWaitTime=1
+startWaitTime=2
+loopMax=3
 
 forceStopTomcat() {
-    echo "\$userNotation Force stop tomcat ..."
+    local loopCnt=0
     while true; do
         sudo lsof -i :\$tomcatiListenPort
         if [[ \$? == 0 ]]; then
+            # Check the loop limit
+            if [[ \$loopCnt -ge \$loopMax ]]; then
+                echo "\$userNotation Max loop reached, force stop tomcat failed."
+                break
+            fi
+            echo "\$userNotation Force stop tomcat ..."
             sudo \$catalinaShellPath stop -force
-            sleep 1
+            sleep \$stopWaitTime
         else
+            if [[ \$loopCnt == 0 ]]; then
+                echo "\$userNotation Tomcat is not running"
+            else
+                echo "\$userNotation Tomcat has been stopped successfully"
+            fi
             break
         fi
+        # Increase the loop counter
+        ((loopCnt++))
     done
 }
 
 forceStartTomcat() {
-    echo "\$userNotation Force start tomcat ..."
+    local loopCnt=0
     while true; do
-        nohup sudo \$catalinaShellPath start &
-        sleep 2
         sudo lsof -i :\$tomcatiListenPort
         if [[ \$? == 0 ]]; then
+            if [[ \$loopCnt == 0 ]]; then
+                echo "\$userNotation Tomcat is already running"
+            else
+                echo "\$userNotation Tomcat has been started successfully"
+            fi
             break
+        else
+            # Check the loop limit
+            if [[ \$loopCnt -ge \$loopMax ]]; then
+                echo "\$userNotation Max loop reached, force start tomcat failed."
+                break
+            fi
+            echo "\$userNotation Force start tomcat ..."
+            nohup sudo \$catalinaShellPath start &
+            sleep \$startWaitTime
         fi
+        # Increase the loop counter
+        ((loopCnt++))
     done
 }
 
@@ -470,13 +515,27 @@ forceRestartTomcat() {
     forceStartTomcat
 }
 
-# set -x
-cd \$loggingPath
-if [[ \$fUpdateIndex == true ]]; then
+updateIndex() {
     echo "\$userNotation Updating index ..."
     sudo \$javaIndexerCommand
-fi
-forceRestartTomcat
+}
+
+main() {
+    if [[ \$fUpdateIndex == true ]]; then
+        updateIndex
+        restartTomcat
+    elif [[ \$fRestartTomcat == true ]]; then
+        forceRestartTomcat
+    elif [[ \$fStartTomcat == true ]]; then
+        forceStartTomcat
+    elif [[ \$fStopTomcat == true ]]; then
+        forceStopTomcat
+    fi
+}
+
+# set -x
+cd \$loggingPath
+main
 _EOF
     chmod +x $indexerFilePath
 
