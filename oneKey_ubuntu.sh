@@ -367,10 +367,12 @@ fStartTomcat=false
 fStopTomcat=false
 # User notation
 userNotation=$userNotation
+scriptName=\$(basename \$0)
+workingDir=\$(cd \$(dirname \$0); pwd)
 
 usage() {
     cat << __EOF
-Usage: \$0 [-hursS]
+Usage: \$scriptName [-hursS]
 Options:
     -h: Print this help message
     -u: Update index and restart Tomcat
@@ -379,10 +381,10 @@ Options:
     -S: Stop Tomcat only
 
 Example:
-    \$0 -u
-    \$0 -r
-    \$0 -s
-    \$0 -S
+    \$scriptName -u
+    \$scriptName -r
+    \$scriptName -s
+    \$scriptName -S
 
 __EOF
     exit 1
