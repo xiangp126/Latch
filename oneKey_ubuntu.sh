@@ -10,7 +10,7 @@ mainWd=$(cd $(dirname $0); pwd)
 makeJobs=8
 commInstdir=/opt
 downloadPath=$mainWd/downloads
-loggingPath=$mainWd/log
+loggingPath=$mainWd/logs
 summaryTxt=$mainWd/summary.txt
 systemSrcRoot=/opt/src
 # Universal Ctags Info
@@ -312,30 +312,15 @@ _EOF
     # copy source.war to tomcat webapps
     tomcatWebAppsDir=$tomcatInstDir/webapps
     cd $downloadPath
-    sudo cp -f $warFilePath $tomcatWebAppsDir
+    sudo -u $tomcatUser cp -f $warFilePath $tomcatWebAppsDir
     if [[ $? != 0 ]]; then
         echo "$userNotation copy $warPath to $tomcatWebAppsDir failed, quitting now"
         exit 2
     fi
 
-    sudo mkdir -p ${openGrokInstanceBase}/{data,dist,etc,log}
-
-    # check if $systemSrcRoot is exist, if no then create it
-    if [[ ! -d $systemSrcRoot ]]; then
-        sudo mkdir -p $systemSrcRoot
-    fi
-
-    # make a soft link to /opt/src
-    if [[ -L $openGrokSrcRoot ]]; then
-        echo "$userNotation Soft link $openGrokSrcRoot already exist. Skipping ln -sf"
-    else
-        sudo ln -sf $systemSrcRoot $openGrokSrcRoot
-    fi
-
     # fix one warning
-    sudo cp -f $downloadPath/$openGrokUntarDir/doc/logging.properties \
+    cp -f $downloadPath/$openGrokUntarDir/doc/logging.properties \
                ${openGrokInstanceBase}/etc
-
 }
 
 makeIndexer() {
@@ -360,6 +345,14 @@ _EOF
 
     cat << _EOF > $indexerFilePath
 #/bin/bash
+# Run Tomcat service as user tomcat
+tomcatUser=$tomcatUser
+tomcatGrp=$tomcatGrp
+catalinaShellPath=$catalinaShellPath
+tomcatiListenPort=$newListenPort
+opengrokLogPath="$loggingPath"
+# tomcatLogPath="$tomcatInstDir/logs"
+javaIndexerCommand="$javaIndexerCommand"
 # Flags
 fUpdateIndex=false
 fRestartTomcat=false
@@ -430,13 +423,9 @@ if [ \$# -gt 0 ]; then
 fi
 
 # Variables
-catalinaShellPath=$catalinaShellPath
-tomcatiListenPort=$newListenPort
-loggingPath="$loggingPath"
-javaIndexerCommand="$javaIndexerCommand"
 stopWaitTime=1
 startWaitTime=2
-loopMax=3
+loopMax=2
 
 forceStopTomcat() {
     local loopCnt=0
@@ -482,7 +471,8 @@ forceStartTomcat() {
                 break
             fi
             echo "\$userNotation Force start tomcat ..."
-            nohup sudo \$catalinaShellPath start &
+            # cd \$tomcatLogPath
+            nohup sudo -u \$tomcatUser \$catalinaShellPath start &
             sleep \$startWaitTime
         fi
         # Increase the loop counter
@@ -497,8 +487,13 @@ forceRestartTomcat() {
 }
 
 updateIndex() {
+    cd \$opengrokLogPath
     echo "\$userNotation Updating index ..."
-    sudo \$javaIndexerCommand
+    \$javaIndexerCommand
+    if [[ \$? != 0 ]]; then
+        echo "\$userNotation Update index failed, quitting now"
+        exit 1
+    fi
 }
 
 main() {
@@ -515,7 +510,7 @@ main() {
 }
 
 # set -x
-cd \$loggingPath
+cd \$opengrokLogPath
 main
 _EOF
     chmod +x $indexerFilePath
@@ -537,7 +532,7 @@ Tomcat Home = $tomcatInstDir
 Tomcat Version = $tomcatVersion
 Opengrok Instance Base = $openGrokInstanceBase
 Opengrok Source Root = $openGrokSrcRoot => $systemSrcRoot
-Indexer Path: $indexerFilePath <- $indexerLinkTarget
+Indexer Path: $indexerLinkTarget -> $indexerFilePath
 Server at: http://127.0.0.1:${newListenPort}/source
 _EOF
 
@@ -586,9 +581,25 @@ _EOF
         exit 1
     fi
     $indexerFilePath -u
+    if [[ $? != 0 ]]; then
+        echo "Call indexer failed, quitting now"
+        exit 1
+    fi
 }
 
-main() {
+checkDirsIfExist() {
+    cat << _EOF
+$catBanner
+Checking Directories
+_EOF
+    if [[ ! -d $systemSrcRoot ]]; then
+        sudo mkdir -p $systemSrcRoot
+    fi
+    local srcRootOwner=`ls -ld $systemSrcRoot | awk '{print $3}'`
+    if [[ "$srcRootOwner" != "$USER" ]]; then
+        sudo chown -R $USER:$GROUPS $systemSrcRoot
+    fi
+
     if [[ ! -d $downloadPath ]]; then
         mkdir -p $downloadPath
     fi
@@ -597,6 +608,21 @@ main() {
         mkdir -p $loggingPath
     fi
 
+    if [[ ! -d $openGrokInstanceBase ]]; then
+        sudo mkdir -p ${openGrokInstanceBase}/{data,dist,etc,log}
+        sudo chown -R $USER:$GROUPS $openGrokInstanceBase
+    fi
+
+    # make a soft link to /opt/src
+    if [[ -L $openGrokSrcRoot ]]; then
+        echo "$userNotation Soft link $openGrokSrcRoot already exist. Skipping ln -sf"
+    else
+        ln -sf $systemSrcRoot $openGrokSrcRoot
+    fi
+}
+
+main() {
+    checkDirsIfExist
     # preInstallForUbuntu
     installuCtags
     installJdk

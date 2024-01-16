@@ -3,7 +3,7 @@
 *.bak
 summary.txt
 downloads/
-log/
+logs/
 *.tar.gz
 opengrok*.log
 call_indexer.sh
