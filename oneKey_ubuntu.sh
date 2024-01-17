@@ -38,7 +38,7 @@ newListenPort=8080
 # serverXmlPath=${tomcatInstDir}/conf/server.xml
 # srvXmlTemplate=$mainWd/template/server.xml
 # OpenGrok Info
-openGrokVersion=1.13.0
+openGrokVersion=1.12.12
 openGrokInstDir=$commInstdir/opengrok
 openGrokTarName=opengrok-$openGrokVersion.tar.gz
 openGrokUntarDir=opengrok-$openGrokVersion
